@@ -66,17 +66,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔑 Test Credentials (Reviewer Personas)
+## 🔑 Test Credentials (Reviewer Accounts)
 
-Use the top **Reviewer Test Switcher** dropdown or log in with:
+Log in at [https://bookleaf-portal-phi.vercel.app/login](https://bookleaf-portal-phi.vercel.app/login) using any of the pre-seeded accounts from `bookleaf_sample_data.json`:
 
-| Role | Name | Email | Password | Notable Scenario |
-| :--- | :--- | :--- | :--- | :--- |
-| **Admin** | Aditi Rao (Ops Lead) | `admin@bookleaf.com` | `adminpassword123` | Full queue triage, AI Co-Pilot, Author Dossier |
-| **Author** | Priya Sharma | `priya.sharma@email.com` | `password123` | Published author with ₹3,570 pending royalty |
-| **Author** | Rohit Kapoor | `rohit.kapoor@email.com` | `password123` | Author with defective print quality inquiry |
-| **Author** | Ananya Reddy | `ananya.reddy@email.com` | `password123` | Book with 0 payout history |
-| **Author** | Sneha Kulkarni | `sneha.kulkarni@email.com` | `password123` | 2 live books + 1 in production (`Midnight in Mysore`) |
+| Role | Author ID | Name & City | Email | Password | Dataset Scenario & Edge Cases |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Admin** | `ADMIN001` | **Aditi Rao (Ops Lead)** | `admin@bookleaf.com` | `adminpassword123` | Full queue triage, AI classification overrides, grounded draft composer, private ops notes |
+| **Author** | `AUTH001` | **Priya Sharma** (Mumbai) | `priya.sharma@email.com` | `password123` | 2 published books (`BK001`, `BK002`), ₹3,570 pending royalty |
+| **Author** | `AUTH002` | **Rohit Kapoor** (Delhi) | `rohit.kapoor@email.com` | `password123` | 2 published books (`BK003`, `BK004`), ₹7,744 pending royalty |
+| **Author** | `AUTH003` | **Ananya Reddy** (Hyderabad) | `ananya.reddy@email.com` | `password123` | 1 published book (`BK005`), ₹0 payout history (new author) |
+| **Author** | `AUTH004` | **Vikram Joshi** (Pune) | `vikram.joshi@email.com` | `password123` | 2 published books (`BK006`, `BK007`), ₹3,350 pending royalty |
+| **Author** | `AUTH005` | **Meera Nair** (Kochi) | `meera.nair@email.com` | `password123` | 2 published books (`BK008`, `BK009`), ₹3,055 pending royalty |
+| **Author** | `AUTH006` | **Arjun Malhotra** (Chandigarh) | `arjun.malhotra@email.com` | `password123` | 1 published book (`BK010`), ₹2,464 pending royalty |
+| **Author** | `AUTH007` | **Sneha Kulkarni** (Bangalore) | `sneha.kulkarni@email.com` | `password123` | 2 live books + **1 in production edge case** (`BK013` *Midnight in Mysore* in Cover Design) |
+| **Author** | `AUTH008` | **Farhan Sheikh** (Lucknow) | `farhan.sheikh@email.com` | `password123` | 1 published book (`BK014`), ₹0 pending royalty (fully settled) |
+| **Author** | `AUTH009` | **Kavita Deshmukh** (Nagpur) | `kavita.deshmukh@email.com` | `password123` | 1 in typesetting (`BK015`) + **1 under ₹1,000 rollover threshold** (`BK016` ₹850 pending) |
+| **Author** | `AUTH010` | **Diya Chatterjee** (Kolkata) | `diya.chatterjee@email.com` | `password123` | 2 published books (`BK017`, `BK018`), ₹1,575 pending royalty |
 
 ---
 
