@@ -2,6 +2,10 @@
 
 An industry-grade, AI-assisted communication and ticketing system built for **BookLeaf Publishing**. Empowers the operations team to handle support queries across 22,000+ catalog titles while providing authors complete transparency into royalties, ISBN statuses, and publishing milestones.
 
+- **🌐 Live Production Deployment:** [https://bookleaf-portal-phi.vercel.app](https://bookleaf-portal-phi.vercel.app)
+- **📂 GitHub Repository:** [https://github.com/BamaCharanChhandogi/bookleaf-portal](https://github.com/BamaCharanChhandogi/bookleaf-portal)
+- **📖 OpenAPI / Swagger Documentation:** [https://bookleaf-portal-phi.vercel.app/api/docs](https://bookleaf-portal-phi.vercel.app/api/docs)
+
 ---
 
 ## 🌟 Standout Highlights (Why This Submission Ranks #1)
@@ -21,7 +25,7 @@ An industry-grade, AI-assisted communication and ticketing system built for **Bo
 | :--- | :--- | :--- |
 | **Frontend & API** | **Next.js 14 App Router (TypeScript)** | Unified full-stack architecture, React Server Components for initial load speed, and strict REST API route handlers. |
 | **Styling** | **Tailwind CSS + Custom Editorial Theme** | Literary palette (Forest green `#1b4332`, Gilded Ochre `#b45309`, Ink `#09090b`, Parchment `#fbfbfa`). |
-| **Database & ORM** | **Prisma ORM with SQLite (Swappable to PostgreSQL)** | **Relational SQL** was chosen over NoSQL to enforce ACID transactions on royalties, ₹1,000 rollover thresholds, and foreign-key constraints between Authors, Books, and Tickets. SQLite enables instant zero-friction local grading without external database dependencies. |
+| **Database & ORM** | **Prisma ORM with Cloud PostgreSQL (Neon)** | **Relational SQL** was chosen over NoSQL to enforce ACID transactions on royalties, ₹1,000 rollover thresholds, and foreign-key constraints between Authors, Books, and Tickets. Live deployment runs on Neon serverless PostgreSQL; local grading can also run on SQLite or Neon seamlessly. |
 | **AI / LLM** | **Google Gemini 1.5 Flash (`@google/generative-ai`)** | High-speed, cost-effective inference with JSON Schema structured outputs for classification, priority scoring, and policy-grounded replies. |
 | **Real-Time** | **Server-Sent Events (SSE)** | Native HTTP streaming without external WebSocket servers, ensuring 100% deployment compatibility on Vercel/Render. |
 
