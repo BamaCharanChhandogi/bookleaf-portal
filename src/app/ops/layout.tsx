@@ -39,21 +39,16 @@ export default function OpsLayout({ children }: OpsLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fbfbfa]">
+    <div className="flex h-screen overflow-hidden bg-[#fbfbfa]">
       {/* Sidebar */}
-      <aside className="hidden w-64 flex-col justify-between border-r border-parchment-300 bg-white p-5 md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-parchment-300 bg-white p-5 md:flex">
         <div>
-          {/* Brand */}
-          <Link href="/ops/queue" className="flex items-center space-x-2.5 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-800 text-white shadow-sm">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="font-editorial text-lg font-bold tracking-tight text-ink-950">
-                BookLeaf
-              </span>
-              <p className="text-[10px] text-forest-700 uppercase tracking-wider font-bold">Ops Command Desk</p>
-            </div>
+          {/* Brand (Typographic, No Logo Icon) */}
+          <Link href="/ops/queue" className="block px-2">
+            <span className="font-editorial text-2xl font-bold tracking-tight text-ink-950">
+              BookLeaf
+            </span>
+            <p className="text-[10px] text-forest-700 uppercase tracking-wider font-bold">Ops Command Desk</p>
           </Link>
 
           {/* Navigation Items */}
@@ -73,15 +68,12 @@ export default function OpsLayout({ children }: OpsLayoutProps) {
         </div>
       </aside>
 
-      {/* Main Shell */}
-      <div className="flex flex-1 flex-col">
-        {/* Top Operations Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-parchment-300 bg-[#fbfbfa]/95 px-6 backdrop-blur-md">
-          <div className="flex items-center space-x-2 md:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-forest-800 text-white">
-              <Shield className="h-4 w-4" />
-            </div>
-            <span className="font-editorial text-base font-bold text-ink-950">Ops Command</span>
+      {/* Main Shell with Scroll Container */}
+      <div className="flex flex-1 flex-col h-screen overflow-y-auto">
+        {/* Top Operations Header (Permanently Sticky) */}
+        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-parchment-300 bg-[#fbfbfa]/95 px-6 backdrop-blur-md">
+          <div className="flex items-center md:hidden">
+            <span className="font-editorial text-xl font-bold text-ink-950">BookLeaf</span>
           </div>
 
           <div className="hidden text-xs text-ink-600 md:block">

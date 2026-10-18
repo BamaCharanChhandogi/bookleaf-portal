@@ -45,21 +45,16 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#fbfbfa]">
+    <div className="flex h-screen overflow-hidden bg-[#fbfbfa]">
       {/* Sidebar Navigation */}
-      <aside className="hidden w-64 flex-col justify-between border-r border-parchment-300 bg-white p-5 md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-parchment-300 bg-white p-5 md:flex">
         <div>
-          {/* Brand */}
-          <Link href="/portal/dashboard" className="flex items-center space-x-2.5 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-800 text-white shadow-sm">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="font-editorial text-lg font-bold tracking-tight text-ink-950">
-                BookLeaf
-              </span>
-              <p className="text-[10px] text-ink-500 uppercase tracking-wider">Author Studio</p>
-            </div>
+          {/* Brand (Typographic, No Logo Icon) */}
+          <Link href="/portal/dashboard" className="block px-2">
+            <span className="font-editorial text-2xl font-bold tracking-tight text-ink-950">
+              BookLeaf
+            </span>
+            <p className="text-[10px] text-ink-500 uppercase tracking-wider font-semibold">Author Studio</p>
           </Link>
 
           {/* Navigation Items */}
@@ -104,16 +99,13 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
         </div>
       </aside>
 
-      {/* Main Content Shell */}
-      <div className="flex flex-1 flex-col">
-        {/* Top Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-parchment-300 bg-[#fbfbfa]/95 px-6 backdrop-blur-md">
+      {/* Main Content Shell with Scroll Container */}
+      <div className="flex flex-1 flex-col h-screen overflow-y-auto">
+        {/* Top Header (Permanently Sticky) */}
+        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-parchment-300 bg-[#fbfbfa]/95 px-6 backdrop-blur-md">
           {/* Mobile Brand Link */}
-          <div className="flex items-center space-x-2 md:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-forest-800 text-white">
-              <BookOpen className="h-4 w-4" />
-            </div>
-            <span className="font-editorial text-base font-bold text-ink-950">BookLeaf</span>
+          <div className="flex items-center md:hidden">
+            <span className="font-editorial text-xl font-bold text-ink-950">BookLeaf</span>
           </div>
 
           {/* Breadcrumb / Section indicator */}

@@ -52,6 +52,9 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
   const [quickReply, setQuickReply] = useState('');
   const [sendingQuickReply, setSendingQuickReply] = useState(false);
 
+  // Thread View Tab (Messages vs Internal Notes)
+  const [activeThreadTab, setActiveThreadTab] = useState<'MESSAGES' | 'NOTES'>('MESSAGES');
+
   // Internal Notes State
   const [newNote, setNewNote] = useState('');
   const [addingNote, setAddingNote] = useState(false);
@@ -260,166 +263,250 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
   return (
     <div className="space-y-4 max-w-[1700px] mx-auto">
-      {/* Back Link */}
-      <div>
-        <Link
-          href="/ops/queue"
-          className="inline-flex items-center space-x-1.5 text-xs font-semibold text-ink-600 hover:text-forest-800 transition"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to Triage Queue</span>
-        </Link>
-      </div>
+      {/* Top Context & Information Strip (Ticket Controls + Author & Book Dossier) */}
+      <div className="rounded-2xl border border-parchment-300 bg-white p-4 shadow-2xs">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+          {/* Left: Back Link, ID, Subject, and Triage Selectors */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Link
+              href="/ops/queue"
+              className="inline-flex items-center space-x-1 rounded-lg border border-parchment-300 bg-parchment-50 px-2.5 py-1 text-xs font-semibold text-ink-700 hover:bg-parchment-100 hover:text-ink-950 transition"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Queue</span>
+            </Link>
 
-      {/* 3-Column Split Workbench */}
-      <div className="grid grid-cols-12 gap-5">
-        {/* COLUMN 1: Conversation History & Metadata Overrides (5 cols) */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs min-h-[760px]">
-          <div>
-            <div className="border-b border-parchment-200 pb-3.5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-editorial text-xl font-bold text-ink-950 leading-tight">
-                    {ticket.subject}
-                  </h2>
-                  <p className="text-xs text-ink-500 mt-1">
-                    Ticket <span className="font-mono font-semibold text-forest-800">#{ticket.id.slice(-6).toUpperCase()}</span> · Raised by {ticket.author.name}
-                  </p>
-                </div>
+            <span className="font-mono text-xs font-bold text-forest-800 bg-forest-50 border border-forest-600/20 px-2 py-0.5 rounded-md">
+              #{ticket.id.slice(-6).toUpperCase()}
+            </span>
 
-                <div className="relative inline-flex items-center shrink-0">
-                  <select
-                    value={currentStatus}
-                    onChange={(e) => {
-                      setCurrentStatus(e.target.value);
-                      handleUpdateMeta({ status: e.target.value });
-                    }}
-                    className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-forest-900 shadow-2xs hover:border-forest-600 focus:border-forest-700 focus:outline-none cursor-pointer"
-                  >
-                    <option value="OPEN">🟢 OPEN</option>
-                    <option value="IN_PROGRESS">🟡 IN PROGRESS</option>
-                    <option value="RESOLVED">✅ RESOLVED</option>
-                    <option value="CLOSED">⚪ CLOSED</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink-500" />
-                </div>
-              </div>
+            <h1 className="font-editorial text-base font-bold text-ink-950 truncate max-w-sm sm:max-w-md">
+              {ticket.subject}
+            </h1>
 
-              {/* Triage Override Controls */}
-              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-parchment-100/70 p-2.5 text-xs">
-                <span className="inline-flex items-center space-x-1 font-bold text-forest-900 shrink-0">
-                  <Sparkles className="h-3.5 w-3.5 text-forest-700" />
-                  <span>Class:</span>
-                </span>
-
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={currentCategory}
-                    onChange={(e) => {
-                      setCurrentCategory(e.target.value);
-                      handleUpdateMeta({ category: e.target.value });
-                    }}
-                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-medium text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
-                </div>
-
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={currentPriority}
-                    onChange={(e) => {
-                      setCurrentPriority(e.target.value);
-                      handleUpdateMeta({ priority: e.target.value });
-                    }}
-                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-bold text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
-                  >
-                    <option value="CRITICAL">🔴 Critical</option>
-                    <option value="HIGH">🟠 High</option>
-                    <option value="MEDIUM">🔵 Medium</option>
-                    <option value="LOW">⚪ Low</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
-                </div>
-
-                <button
-                  onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
-                  className="ml-auto inline-flex items-center rounded-lg border border-forest-600/20 bg-white px-2.5 py-1 text-[11px] font-bold text-forest-800 shadow-2xs hover:bg-forest-50 transition cursor-pointer"
-                >
-                  {ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim'}
-                </button>
-              </div>
+            {/* Status Dropdown */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={currentStatus}
+                onChange={(e) => {
+                  setCurrentStatus(e.target.value);
+                  handleUpdateMeta({ status: e.target.value });
+                }}
+                className="appearance-none rounded-xl border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-bold text-forest-900 shadow-2xs hover:border-forest-600 focus:outline-none cursor-pointer"
+              >
+                <option value="OPEN">🟢 OPEN</option>
+                <option value="IN_PROGRESS">🟡 IN PROGRESS</option>
+                <option value="RESOLVED">✅ RESOLVED</option>
+                <option value="CLOSED">⚪ CLOSED</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-500" />
             </div>
 
-            {/* Conversation Stream Header */}
-            <div className="mt-4 flex items-center justify-between border-b border-parchment-200 pb-2.5">
-              <span className="font-editorial text-sm font-bold text-ink-950">
-                Conversation History ({ticket.messages.length})
-              </span>
+            {/* Priority Dropdown */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={currentPriority}
+                onChange={(e) => {
+                  setCurrentPriority(e.target.value);
+                  handleUpdateMeta({ priority: e.target.value });
+                }}
+                className="appearance-none rounded-xl border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-bold text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
+              >
+                <option value="CRITICAL">🔴 Critical</option>
+                <option value="HIGH">🟠 High</option>
+                <option value="MEDIUM">🔵 Medium</option>
+                <option value="LOW">⚪ Low</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={currentCategory}
+                onChange={(e) => {
+                  setCurrentCategory(e.target.value);
+                  handleUpdateMeta({ category: e.target.value });
+                }}
+                className="appearance-none rounded-xl border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-medium text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
+            </div>
+
+            <button
+              onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
+              className="inline-flex items-center rounded-lg border border-forest-600/20 bg-forest-50 px-2.5 py-1 text-xs font-bold text-forest-800 hover:bg-forest-100 transition cursor-pointer"
+            >
+              {ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim'}
+            </button>
+          </div>
+
+          {/* Right: Author & Book Dossier (Horizontal Information Strip) */}
+          <div className="flex flex-wrap items-center gap-2.5 text-xs bg-parchment-50 border border-parchment-200/80 rounded-xl px-3 py-1.5">
+            <div className="flex items-center space-x-1.5">
+              <User className="h-3.5 w-3.5 text-forest-700 shrink-0" />
+              <span className="font-bold text-ink-950">{ticket.author.name}</span>
+              <span className="text-ink-500 text-[11px]">({ticket.author.city || 'India'})</span>
+              <span className="text-parchment-400">•</span>
+              <span className="text-ink-600 text-[11px]">{ticket.author.email}</span>
+            </div>
+
+            {ticket.book && (
+              <>
+                <span className="text-parchment-400">•</span>
+                <div className="flex items-center space-x-2">
+                  <span className="font-editorial font-bold text-ink-950">{ticket.book.title}</span>
+                  <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-ink-700 border border-parchment-200">
+                    {ticket.book.totalCopiesSold} sold
+                  </span>
+                  <span className="rounded bg-forest-50 px-1.5 py-0.5 text-[10px] font-bold text-forest-800 border border-forest-600/20">
+                    ₹{ticket.book.royaltyPending} royalty
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2-Column Balanced Workbench (Row Layout) */}
+      <div className="grid grid-cols-12 gap-5">
+        {/* COLUMN 1: Conversation Stream & Internal Notes Tab (6 cols) */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col justify-between rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs min-h-[720px]">
+          <div>
+            {/* View Mode Tabs: Author Chat vs Internal Notes */}
+            <div className="flex items-center justify-between border-b border-parchment-200 pb-3">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setActiveThreadTab('MESSAGES')}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                    activeThreadTab === 'MESSAGES'
+                      ? 'bg-forest-800 text-white shadow-2xs'
+                      : 'border border-parchment-300 bg-parchment-50 text-ink-700 hover:bg-parchment-100'
+                  }`}
+                >
+                  Author Conversation ({ticket.messages.length})
+                </button>
+                <button
+                  onClick={() => setActiveThreadTab('NOTES')}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                    activeThreadTab === 'NOTES'
+                      ? 'bg-forest-800 text-white shadow-2xs'
+                      : 'border border-parchment-300 bg-parchment-50 text-ink-700 hover:bg-parchment-100'
+                  }`}
+                >
+                  Internal Ops Notes ({ticket.internalNotes?.length || 0})
+                </button>
+              </div>
+
               <div className="flex items-center space-x-1.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full px-2.5 py-0.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Live Sync</span>
               </div>
             </div>
 
-            {/* Messages Thread */}
-            <div className="my-4 max-h-[520px] space-y-3.5 overflow-y-auto pr-2">
-              {ticket.messages.map((m: any) => (
-                <div
-                  key={m.id}
-                  className={`flex flex-col ${
-                    m.senderRole === 'ADMIN' ? 'items-end' : 'items-start'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2 text-[10px] text-ink-500 mb-1">
-                    <span className="font-semibold text-ink-800">{m.senderName}</span>
-                    <span>•</span>
-                    <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-
+            {/* TAB CONTENT 1: Author Conversation Thread */}
+            {activeThreadTab === 'MESSAGES' ? (
+              <div className="my-4 max-h-[530px] space-y-3.5 overflow-y-auto pr-2">
+                {ticket.messages.map((m: any) => (
                   <div
-                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap ${
-                      m.senderRole === 'ADMIN'
-                        ? 'bg-forest-800 text-white rounded-tr-none shadow-xs'
-                        : 'border border-parchment-300 bg-[#faf9f6] text-ink-950 rounded-tl-none shadow-2xs'
+                    key={m.id}
+                    className={`flex flex-col ${
+                      m.senderRole === 'ADMIN' ? 'items-end' : 'items-start'
                     }`}
                   >
-                    {m.message}
+                    <div className="flex items-center space-x-2 text-[10px] text-ink-500 mb-1">
+                      <span className="font-semibold text-ink-800">{m.senderName}</span>
+                      <span>•</span>
+                      <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap ${
+                        m.senderRole === 'ADMIN'
+                          ? 'bg-forest-800 text-white rounded-tr-none shadow-xs'
+                          : 'border border-parchment-300 bg-[#faf9f6] text-ink-950 rounded-tl-none shadow-2xs'
+                      }`}
+                    >
+                      {m.message}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              /* TAB CONTENT 2: Internal Ops Notes */
+              <div className="my-4 max-h-[530px] space-y-3 overflow-y-auto pr-2">
+                {ticket.internalNotes?.length === 0 ? (
+                  <div className="py-12 text-center text-xs text-ink-400 italic">
+                    No private internal notes recorded yet for this ticket.
+                  </div>
+                ) : (
+                  ticket.internalNotes.map((note: any) => (
+                    <div key={note.id} className="rounded-xl bg-amber-50/90 p-3.5 text-xs border border-amber-200/70">
+                      <div className="flex items-center justify-between text-[10px] text-amber-800 mb-1">
+                        <span className="font-bold">{note.adminName} (Ops)</span>
+                        <span>{new Date(note.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p className="text-amber-950 leading-relaxed font-normal">{note.note}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Direct Reply Composer in Column 1 */}
-          <form onSubmit={handleSendQuickReply} className="mt-3 border-t border-parchment-200 pt-3">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={quickReply}
-                onChange={(e) => setQuickReply(e.target.value)}
-                placeholder="Type a direct response to author..."
-                className="flex-1 rounded-xl border border-parchment-300 bg-parchment-50 px-3.5 py-2.5 text-xs text-ink-950 placeholder:text-ink-400 focus:border-forest-700 focus:bg-white focus:outline-none transition"
-              />
-              <button
-                type="submit"
-                disabled={sendingQuickReply || !quickReply.trim()}
-                className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
-              >
-                <Send className="h-3.5 w-3.5" />
-                <span>{sendingQuickReply ? 'Sending...' : 'Send'}</span>
-              </button>
-            </div>
-          </form>
+          {/* Bottom Action Composer */}
+          {activeThreadTab === 'MESSAGES' ? (
+            <form onSubmit={handleSendQuickReply} className="mt-3 border-t border-parchment-200 pt-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={quickReply}
+                  onChange={(e) => setQuickReply(e.target.value)}
+                  placeholder="Type a direct reply to author..."
+                  className="flex-1 rounded-xl border border-parchment-300 bg-parchment-50 px-3.5 py-2.5 text-xs text-ink-950 placeholder:text-ink-400 focus:border-forest-700 focus:bg-white focus:outline-none transition"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingQuickReply || !quickReply.trim()}
+                  className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  <span>{sendingQuickReply ? 'Sending...' : 'Send'}</span>
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleAddNote} className="mt-3 border-t border-parchment-200 pt-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Record private operational note (visible only to team)..."
+                  className="flex-1 rounded-xl border border-parchment-300 bg-amber-50/40 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-400 focus:border-amber-600 focus:bg-white focus:outline-none transition"
+                />
+                <button
+                  type="submit"
+                  disabled={addingNote || !newNote.trim()}
+                  className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
+                >
+                  <Bookmark className="h-3.5 w-3.5" />
+                  <span>{addingNote ? 'Saving...' : 'Add Note'}</span>
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
-        {/* COLUMN 2: Policy-Grounded Draft Assistant (4 cols) */}
-        <div className="col-span-12 lg:col-span-4 rounded-2xl border border-forest-600/30 bg-forest-50/25 p-5 shadow-2xs flex flex-col justify-between min-h-[700px]">
+        {/* COLUMN 2: Policy-Grounded Draft Assistant (6 cols) */}
+        <div className="col-span-12 lg:col-span-6 rounded-2xl border border-forest-600/30 bg-forest-50/20 p-5 shadow-2xs flex flex-col justify-between min-h-[720px]">
           <div>
             <div className="flex items-center justify-between border-b border-forest-600/20 pb-3">
               <div className="flex items-center space-x-1.5 text-xs font-bold text-forest-900">
@@ -509,7 +596,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
             {/* Response Draft Textarea */}
             <textarea
-              rows={13}
+              rows={14}
               value={editableDraft}
               onChange={(e) => setEditableDraft(e.target.value)}
               className="mt-3 w-full rounded-2xl border border-parchment-300 bg-white p-3.5 text-xs leading-relaxed text-ink-900 shadow-inner focus:border-forest-700 focus:outline-none"
@@ -527,7 +614,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
           <div className="mt-3 pt-3 border-t border-forest-600/20 flex items-center justify-between">
             <span className="text-[10px] text-ink-500">
-              Calibrated with BookLeaf policies
+              Calibrated with BookLeaf operating policies
             </span>
 
             <button
@@ -538,99 +625,6 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               <Send className="h-3.5 w-3.5" />
               <span>{sendingDraft ? 'Sending...' : 'Approve & Send to Author'}</span>
             </button>
-          </div>
-        </div>
-
-        {/* COLUMN 3: Author Dossier & Private Internal Notes (3 cols) */}
-        <div className="col-span-12 lg:col-span-3 space-y-4">
-          {/* Author Dossier */}
-          <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs">
-            <div className="flex items-center space-x-2 border-b border-parchment-200 pb-3">
-              <User className="h-4 w-4 text-forest-700" />
-              <h3 className="font-editorial text-sm font-bold text-ink-950">
-                Author Dossier
-              </h3>
-            </div>
-
-            <div className="mt-3 space-y-2.5 text-xs">
-              <div>
-                <span className="text-ink-500 text-[11px]">Author Name</span>
-                <p className="font-bold text-ink-900 text-sm">{ticket.author.name}</p>
-              </div>
-              <div>
-                <span className="text-ink-500 text-[11px]">Email & Location</span>
-                <p className="font-medium text-ink-800">{ticket.author.email}</p>
-                <p className="text-ink-600">{ticket.author.city || 'India'}</p>
-              </div>
-            </div>
-
-            {ticket.book && (
-              <div className="mt-4 border-t border-parchment-200 pt-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-forest-700">
-                  Associated Title
-                </span>
-                <h4 className="font-editorial mt-1 text-sm font-bold text-ink-900">
-                  {ticket.book.title}
-                </h4>
-                <p className="text-[10px] font-mono text-ink-500">
-                  ISBN: {ticket.book.isbn}
-                </p>
-
-                <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="rounded-xl bg-parchment-50 p-2.5 border border-parchment-200/60">
-                    <span className="text-ink-500 text-[10px] font-medium">Copies Sold</span>
-                    <p className="font-bold text-ink-900 text-sm mt-0.5">{ticket.book.totalCopiesSold}</p>
-                  </div>
-                  <div className="rounded-xl bg-parchment-50 p-2.5 border border-parchment-200/60">
-                    <span className="text-ink-500 text-[10px] font-medium">Pending Royalty</span>
-                    <p className="font-bold text-forest-800 text-sm mt-0.5">₹{ticket.book.royaltyPending}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Internal Notes */}
-          <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs">
-            <div className="flex items-center space-x-2 border-b border-parchment-200 pb-3">
-              <Bookmark className="h-4 w-4 text-forest-700" />
-              <h3 className="font-editorial text-sm font-bold text-ink-950">
-                Internal Ops Notes
-              </h3>
-            </div>
-
-            <div className="my-3 max-h-48 space-y-2 overflow-y-auto">
-              {ticket.internalNotes?.length === 0 ? (
-                <p className="text-xs text-ink-400 italic py-2">No internal notes added yet</p>
-              ) : (
-                ticket.internalNotes.map((note: any) => (
-                  <div key={note.id} className="rounded-xl bg-amber-50/90 p-2.5 text-xs border border-amber-200/70">
-                    <div className="flex items-center justify-between text-[10px] text-amber-800">
-                      <span className="font-bold">{note.adminName}</span>
-                      <span>{new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                    <p className="mt-1 text-amber-950 leading-relaxed">{note.note}</p>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <form onSubmit={handleAddNote} className="mt-2.5">
-              <input
-                type="text"
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Add private note for ops..."
-                className="w-full rounded-xl border border-parchment-300 px-3 py-2 text-xs text-ink-900 focus:border-forest-700 focus:outline-none transition"
-              />
-              <button
-                type="submit"
-                disabled={addingNote || !newNote.trim()}
-                className="mt-2 w-full rounded-xl bg-forest-800 py-2 text-xs font-bold text-white shadow-2xs hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
-              >
-                {addingNote ? 'Saving Note...' : 'Add Private Note'}
-              </button>
-            </form>
           </div>
         </div>
       </div>
