@@ -1,8 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'bookleaf-enterprise-secret-key-2026-production'
-);
+// Single source of truth for JWT signing secret across Edge Middleware and Node API routes
+const SECRET_STRING = 'bookleaf-enterprise-secret-key-2026-production';
+const JWT_SECRET = new TextEncoder().encode(SECRET_STRING);
 
 export interface SessionPayload {
   id: string;
@@ -24,7 +24,8 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as unknown as SessionPayload;
-  } catch (err) {
+  } catch (err: any) {
+    console.error('[Session Verify Error]:', err?.message);
     return null;
   }
 }

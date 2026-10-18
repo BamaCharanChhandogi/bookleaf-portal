@@ -41,9 +41,9 @@ function LoginCard() {
       }
 
       if (redirectPath) {
-        router.push(redirectPath);
+        window.location.href = redirectPath;
       } else {
-        router.push(data.redirectUrl || '/portal/dashboard');
+        window.location.href = data.redirectUrl || '/portal/dashboard';
       }
     } catch (err: any) {
       setError(err.message);
