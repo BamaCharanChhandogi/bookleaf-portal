@@ -77,14 +77,14 @@ function LoginCard() {
           </p>
         </div>
 
-        {/* Evaluator Fast-Fill Credentials Drawer */}
+        {/* Live Demo Workspaces Selector */}
         <div className="mt-6 rounded-2xl border border-parchment-300 bg-white p-4 shadow-sm">
           <div className="flex items-center space-x-1.5 text-xs font-bold text-forest-800">
             <Sparkles className="h-3.5 w-3.5 text-forest-700" />
-            <span>Evaluator 1-Click Fast Pass:</span>
+            <span>Select Demo Workspace:</span>
           </div>
           <p className="text-[11px] text-ink-500 mt-0.5">
-            Click any test persona to populate credentials and log in:
+            Choose an account to sign in to Author Studio or Operations Desk:
           </p>
 
           <div className="mt-3 space-y-2">

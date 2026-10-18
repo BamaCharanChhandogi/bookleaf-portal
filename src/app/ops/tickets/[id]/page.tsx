@@ -305,7 +305,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-parchment-100/70 p-2.5 text-xs">
                 <span className="inline-flex items-center space-x-1 font-semibold text-forest-800">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>AI Triage:</span>
+                  <span>Classification:</span>
                 </span>
 
                 <select
@@ -403,7 +403,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
             <div className="flex items-center justify-between border-b border-forest-600/20 pb-3">
               <div className="flex items-center space-x-1.5 text-xs font-bold text-forest-900">
                 <Sparkles className="h-4 w-4 text-forest-700" />
-                <span>AI Co-Pilot Grounded Draft</span>
+                <span>Policy-Grounded Draft Assistant</span>
               </div>
 
               <button

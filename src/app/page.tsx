@@ -85,17 +85,17 @@ export default function HomePage() {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2 text-xs text-ink-700">
-              <span className="rounded bg-parchment-100 px-2.5 py-1">🤖 Gemini Flash Triage</span>
-              <span className="rounded bg-parchment-100 px-2.5 py-1">📖 Grounded KB Drafts</span>
+              <span className="rounded bg-parchment-100 px-2.5 py-1">✨ Automated Query Triage</span>
+              <span className="rounded bg-parchment-100 px-2.5 py-1">📖 Policy-Grounded Drafts</span>
               <span className="rounded bg-parchment-100 px-2.5 py-1">🔒 Private Internal Notes</span>
             </div>
 
             <div className="mt-8 border-t border-parchment-200 pt-6">
               <Link
-                href="/admin"
+                href="/login"
                 className="inline-flex w-full items-center justify-center space-x-2 rounded-xl bg-forest-800 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-900"
               >
-                <span>Enter Admin Operations Queue</span>
+                <span>Enter Operations Command Desk</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -106,14 +106,14 @@ export default function HomePage() {
         <div className="mt-16 rounded-2xl border border-parchment-300 bg-parchment-100/70 p-8">
           <div className="mb-6 flex items-center justify-between">
             <h3 className="font-editorial text-xl font-bold text-ink-950">
-              Standout Architectural Highlights
+              Publishing Desk Highlights
             </h3>
             <Link
               href="/api/docs"
               target="_blank"
               className="text-xs font-semibold text-forest-700 underline underline-offset-4 hover:text-forest-900"
             >
-              View Interactive OpenAPI Spec ↗
+              View API Documentation ↗
             </Link>
           </div>
 
@@ -121,9 +121,9 @@ export default function HomePage() {
             <div className="flex items-start space-x-3">
               <Cpu className="mt-0.5 h-5 w-5 text-forest-700 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-ink-900">Token-Budgeted AI</p>
+                <p className="text-sm font-bold text-ink-900">Policy-Grounded Intelligence</p>
                 <p className="text-xs text-ink-600 mt-1">
-                  Intelligent KB slice retriever cuts prompt tokens by ~65%, grounding replies in real policies without fluff.
+                  Semantic knowledge retrieval grounds every operational draft directly in verified BookLeaf guidelines.
                 </p>
               </div>
             </div>

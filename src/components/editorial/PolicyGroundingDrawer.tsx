@@ -99,7 +99,7 @@ export function PolicyGroundingDrawer({ policyTitle, isOpen, onClose }: Groundin
 
         <div className="mt-6 border-t border-parchment-200 pt-4">
           <p className="text-[11px] text-ink-500">
-            This excerpt was automatically injected into the Gemini prompt context to ground the response in real company policies.
+            This official excerpt is dynamically referenced to ensure all author communications strictly adhere to BookLeaf operating standards.
           </p>
         </div>
       </div>

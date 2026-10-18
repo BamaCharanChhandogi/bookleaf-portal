@@ -72,14 +72,14 @@ export default function OpsLayout({ children }: OpsLayoutProps) {
           </nav>
         </div>
 
-        {/* AI Engine Status Badge */}
+        {/* Operations Intelligence Status Badge */}
         <div className="rounded-2xl border border-forest-600/20 bg-forest-50/60 p-4">
           <div className="flex items-center space-x-2 text-xs font-bold text-forest-900">
             <Sparkles className="h-4 w-4 text-forest-700" />
-            <span>AI Co-Pilot 2.0</span>
+            <span>Smart Operations Desk</span>
           </div>
           <p className="mt-1 text-[11px] text-ink-600 leading-relaxed">
-            Gemini 1.5 Flash active with token-budgeted BookLeaf RAG grounding.
+            Automated inquiry triage, SLA tracking, and grounded policy response drafting active.
           </p>
         </div>
       </aside>
