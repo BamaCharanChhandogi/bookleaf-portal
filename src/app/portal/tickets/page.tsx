@@ -11,6 +11,7 @@ import {
   Filter,
   CheckCircle2,
   AlertCircle,
+  ChevronDown,
 } from 'lucide-react';
 
 function TicketsContent() {
@@ -226,18 +227,21 @@ function TicketsContent() {
                 <label className="block text-xs font-semibold text-ink-800">
                   Select Associated Title
                 </label>
-                <select
-                  value={selectedBookId}
-                  onChange={(e) => setSelectedBookId(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-parchment-300 px-3 py-2 text-xs text-ink-900 focus:border-forest-700 focus:outline-none"
-                >
-                  <option value="GENERAL">General / Account Level Query</option>
-                  {books.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      📖 {b.title} ({b.isbn})
-                    </option>
-                  ))}
-                </select>
+                <div className="relative mt-1">
+                  <select
+                    value={selectedBookId}
+                    onChange={(e) => setSelectedBookId(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-parchment-300 bg-white pl-3.5 pr-8 py-2 text-xs text-ink-900 focus:border-forest-700 focus:outline-none cursor-pointer"
+                  >
+                    <option value="GENERAL">General / Account Level Query</option>
+                    {books.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        📖 {b.title} ({b.isbn})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-400" />
+                </div>
               </div>
 
               <div>

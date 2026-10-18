@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Flame,
   CheckCircle2,
+  ChevronDown,
 } from 'lucide-react';
 import { PolicyGroundingDrawer } from '@/components/editorial/PolicyGroundingDrawer';
 
@@ -286,60 +287,69 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                   </p>
                 </div>
 
-                <select
-                  value={currentStatus}
-                  onChange={(e) => {
-                    setCurrentStatus(e.target.value);
-                    handleUpdateMeta({ status: e.target.value });
-                  }}
-                  className="rounded-xl border border-parchment-300 bg-white px-3 py-1 text-xs font-bold text-ink-800 shadow-2xs"
-                >
-                  <option value="OPEN">OPEN</option>
-                  <option value="IN_PROGRESS">IN PROGRESS</option>
-                  <option value="RESOLVED">RESOLVED</option>
-                  <option value="CLOSED">CLOSED</option>
-                </select>
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={currentStatus}
+                    onChange={(e) => {
+                      setCurrentStatus(e.target.value);
+                      handleUpdateMeta({ status: e.target.value });
+                    }}
+                    className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-ink-800 shadow-2xs hover:border-parchment-400 focus:border-forest-700 focus:outline-none cursor-pointer"
+                  >
+                    <option value="OPEN">OPEN</option>
+                    <option value="IN_PROGRESS">IN PROGRESS</option>
+                    <option value="RESOLVED">RESOLVED</option>
+                    <option value="CLOSED">CLOSED</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink-400" />
+                </div>
               </div>
 
               {/* Triage Override Controls */}
-              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-parchment-100/70 p-2.5 text-xs">
-                <span className="inline-flex items-center space-x-1 font-semibold text-forest-800">
-                  <Sparkles className="h-3.5 w-3.5" />
+              <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl bg-parchment-100/70 p-2.5 text-xs">
+                <span className="inline-flex items-center space-x-1.5 font-bold text-forest-900 shrink-0">
+                  <Sparkles className="h-3.5 w-3.5 text-forest-700" />
                   <span>Classification:</span>
                 </span>
 
-                <select
-                  value={currentCategory}
-                  onChange={(e) => {
-                    setCurrentCategory(e.target.value);
-                    handleUpdateMeta({ category: e.target.value });
-                  }}
-                  className="rounded-lg border border-parchment-300 bg-white px-2 py-0.5 text-xs text-ink-800"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={currentCategory}
+                    onChange={(e) => {
+                      setCurrentCategory(e.target.value);
+                      handleUpdateMeta({ category: e.target.value });
+                    }}
+                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-medium text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
+                </div>
 
-                <select
-                  value={currentPriority}
-                  onChange={(e) => {
-                    setCurrentPriority(e.target.value);
-                    handleUpdateMeta({ priority: e.target.value });
-                  }}
-                  className="rounded-lg border border-parchment-300 bg-white px-2 py-0.5 text-xs font-bold text-ink-800"
-                >
-                  <option value="CRITICAL">🔴 Critical</option>
-                  <option value="HIGH">🟠 High</option>
-                  <option value="MEDIUM">🔵 Medium</option>
-                  <option value="LOW">⚪ Low</option>
-                </select>
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={currentPriority}
+                    onChange={(e) => {
+                      setCurrentPriority(e.target.value);
+                      handleUpdateMeta({ priority: e.target.value });
+                    }}
+                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-bold text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
+                  >
+                    <option value="CRITICAL">🔴 Critical</option>
+                    <option value="HIGH">🟠 High</option>
+                    <option value="MEDIUM">🔵 Medium</option>
+                    <option value="LOW">⚪ Low</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
+                </div>
 
                 <button
                   onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
-                  className="ml-auto text-[11px] font-semibold text-forest-700 hover:text-forest-900"
+                  className="ml-auto inline-flex items-center rounded-lg border border-forest-600/20 bg-white px-2.5 py-1 text-[11px] font-bold text-forest-800 shadow-2xs hover:bg-forest-50 transition"
                 >
                   {ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim Ticket'}
                 </button>

@@ -45,7 +45,7 @@ export function UserNavMenu({ user }: UserMenuProps) {
           <p className="font-semibold text-ink-950 leading-tight">{user.name}</p>
           <p className="text-[10px] text-ink-500 uppercase tracking-wider">{user.role}</p>
         </div>
-        <ChevronDown className="h-3 w-3 text-ink-500" />
+        <ChevronDown className={`h-3.5 w-3.5 text-ink-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (

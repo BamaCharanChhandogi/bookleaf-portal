@@ -11,6 +11,7 @@ import {
   User,
   Clock,
   CheckCircle2,
+  ChevronDown,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -111,42 +112,54 @@ export default function OpsQueuePage() {
         </div>
 
         {/* Filters */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-0">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-parchment-300 bg-white px-3 py-1.5 text-xs font-medium text-ink-800 shadow-sm"
-          >
-            <option value="ALL">Status: All</option>
-            <option value="OPEN">Open</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="RESOLVED">Resolved</option>
-            <option value="CLOSED">Closed</option>
-          </select>
+        <div className="mt-4 flex flex-wrap items-center gap-2.5 md:mt-0">
+          {/* Status Filter */}
+          <div className="relative inline-flex items-center">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3.5 pr-8 py-2 text-xs font-semibold text-ink-800 shadow-2xs hover:border-parchment-400 focus:border-forest-700 focus:outline-none cursor-pointer"
+            >
+              <option value="ALL">Status: All</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-ink-400" />
+          </div>
 
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="rounded-xl border border-parchment-300 bg-white px-3 py-1.5 text-xs font-medium text-ink-800 shadow-sm"
-          >
-            <option value="ALL">Priority: All</option>
-            <option value="CRITICAL">Critical</option>
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
+          {/* Priority Filter */}
+          <div className="relative inline-flex items-center">
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3.5 pr-8 py-2 text-xs font-semibold text-ink-800 shadow-2xs hover:border-parchment-400 focus:border-forest-700 focus:outline-none cursor-pointer"
+            >
+              <option value="ALL">Priority: All</option>
+              <option value="CRITICAL">🔴 Critical</option>
+              <option value="HIGH">🟠 High</option>
+              <option value="MEDIUM">🔵 Medium</option>
+              <option value="LOW">⚪ Low</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-ink-400" />
+          </div>
 
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-xl border border-parchment-300 bg-white px-3 py-1.5 text-xs font-medium text-ink-800 shadow-sm"
-          >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat === 'ALL' ? 'Category: All' : cat}
-              </option>
-            ))}
-          </select>
+          {/* Category Filter */}
+          <div className="relative inline-flex items-center">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3.5 pr-8 py-2 text-xs font-semibold text-ink-800 shadow-2xs hover:border-parchment-400 focus:border-forest-700 focus:outline-none cursor-pointer"
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat === 'ALL' ? 'Category: All' : cat}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-ink-400" />
+          </div>
         </div>
       </div>
 
