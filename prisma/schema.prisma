@@ -1,0 +1,107 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Author {
+  id          String   @id // e.g. AUTH001
+  name        String
+  email       String   @unique
+  phone       String?
+  city        String?
+  joinedDate  DateTime @default(now())
+  role        String   @default("AUTHOR") // "AUTHOR" or "ADMIN"
+  password    String   @default("password123")
+  
+  books       Book[]
+  tickets     Ticket[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Book {
+  id                    String   @id // e.g. BK001
+  authorId              String
+  author                Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title                 String
+  isbn                  String   @unique
+  genre                 String
+  publicationDate       DateTime?
+  status                String   // "Published & Live", "In Production - Cover Design", etc.
+  mrp                   Float?
+  authorRoyaltyPerCopy  Float?
+  totalCopiesSold       Int      @default(0)
+  totalRoyaltyEarned    Float    @default(0)
+  royaltyPaid           Float    @default(0)
+  royaltyPending        Float    @default(0)
+  lastRoyaltyPayoutDate DateTime?
+  printPartner          String?
+  availableOn           String   // JSON string array e.g. ["Amazon India", "Flipkart"]
+
+  tickets               Ticket[]
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Ticket {
+  id                  String   @id @default(cuid())
+  authorId            String
+  author              Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  bookId              String?
+  book                Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  
+  subject             String
+  description         String
+  status              String   @default("OPEN") // "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"
+  priority            String   @default("MEDIUM") // "CRITICAL", "HIGH", "MEDIUM", "LOW"
+  category            String   @default("General Inquiry") 
+  // Categories:
+  // "Royalty & Payments"
+  // "ISBN & Metadata Issues"
+  // "Printing & Quality"
+  // "Distribution & Availability"
+  // "Book Status & Production Updates"
+  // "General Inquiry"
+  
+  assignedTo          String?  // Admin name or ID
+  
+  // AI Assisted Meta
+  aiSuggestedCategory String?
+  aiSuggestedPriority String?
+  aiPriorityReason    String?
+  aiDraftResponse     String?
+  aiGroundingPolicy   String?  // Policy section cited
+  
+  attachmentUrl       String?
+
+  messages            TicketMessage[]
+  internalNotes       InternalNote[]
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderRole  String   // "AUTHOR", "ADMIN", "SYSTEM"
+  senderName  String
+  message     String
+  createdAt   DateTime @default(now())
+}
+
+model InternalNote {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  adminName   String
+  note        String
+  createdAt   DateTime @default(now())
+}

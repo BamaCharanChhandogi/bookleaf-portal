@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  color: #14171a;
+  background-color: #fbfbfa;
+  font-family: var(--font-jakarta);
+}
+
+/* Custom Literary Styling */
+.font-editorial {
+  font-family: var(--font-playfair);
+}
+
+.paper-texture {
+  background-color: #fbfbfa;
+  background-image: radial-gradient(#26292d 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+  background-position: 0 0;
+  background-opacity: 0.03;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f4f2ee;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
