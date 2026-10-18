@@ -259,142 +259,109 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
   }
 
   return (
-    <div className="space-y-5 max-w-[1700px] mx-auto">
-      {/* Top Workbench Command Header Banner */}
-      <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs">
-        {/* Navigation & Breadcrumbs */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-parchment-200 pb-3.5">
-          <div className="flex items-center space-x-3">
-            <Link
-              href="/ops/queue"
-              className="inline-flex items-center space-x-1.5 rounded-lg border border-parchment-300 bg-parchment-50 px-2.5 py-1 text-xs font-semibold text-ink-700 hover:bg-parchment-100 hover:text-ink-950 transition"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Queue</span>
-            </Link>
-            <span className="text-parchment-400">/</span>
-            <span className="font-mono text-xs font-bold text-forest-800 bg-forest-50 border border-forest-600/20 px-2 py-0.5 rounded-md">
-              #{ticket.id.slice(-6).toUpperCase()}
-            </span>
-            <span className="text-xs text-ink-500">
-              Raised {new Date(ticket.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
-
-          {/* Lead Assignment */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
-              className="inline-flex items-center space-x-1.5 rounded-xl border border-forest-600/25 bg-forest-50/70 px-3 py-1.5 text-xs font-bold text-forest-900 shadow-2xs hover:bg-forest-100 transition cursor-pointer"
-            >
-              <User className="h-3.5 w-3.5 text-forest-700" />
-              <span>{ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim Ticket'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Title & Primary Triage Selectors */}
-        <div className="mt-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="font-editorial text-2xl font-bold tracking-tight text-ink-950">
-              {ticket.subject}
-            </h1>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-600">
-              <span className="font-semibold text-ink-900">Author:</span>
-              <span className="font-medium text-forest-900">{ticket.author.name}</span>
-              <span className="text-parchment-400">•</span>
-              <span>{ticket.author.email}</span>
-              {ticket.author.city && (
-                <>
-                  <span className="text-parchment-400">•</span>
-                  <span>{ticket.author.city}</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Override Controls Cluster */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Status Dropdown */}
-            <div className="relative inline-flex items-center">
-              <span className="mr-1.5 text-[11px] font-bold text-ink-500 uppercase">Status:</span>
-              <div className="relative">
-                <select
-                  value={currentStatus}
-                  onChange={(e) => {
-                    setCurrentStatus(e.target.value);
-                    handleUpdateMeta({ status: e.target.value });
-                  }}
-                  className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-forest-900 shadow-2xs hover:border-forest-600 focus:border-forest-700 focus:outline-none cursor-pointer"
-                >
-                  <option value="OPEN">🟢 OPEN</option>
-                  <option value="IN_PROGRESS">🟡 IN PROGRESS</option>
-                  <option value="RESOLVED">✅ RESOLVED</option>
-                  <option value="CLOSED">⚪ CLOSED</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-ink-500" />
-              </div>
-            </div>
-
-            {/* Category Dropdown */}
-            <div className="relative inline-flex items-center">
-              <span className="mr-1.5 text-[11px] font-bold text-ink-500 uppercase">Category:</span>
-              <div className="relative">
-                <select
-                  value={currentCategory}
-                  onChange={(e) => {
-                    setCurrentCategory(e.target.value);
-                    handleUpdateMeta({ category: e.target.value });
-                  }}
-                  className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-semibold text-ink-800 shadow-2xs hover:border-parchment-400 focus:outline-none cursor-pointer"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-ink-400" />
-              </div>
-            </div>
-
-            {/* Priority Dropdown */}
-            <div className="relative inline-flex items-center">
-              <span className="mr-1.5 text-[11px] font-bold text-ink-500 uppercase">Priority:</span>
-              <div className="relative">
-                <select
-                  value={currentPriority}
-                  onChange={(e) => {
-                    setCurrentPriority(e.target.value);
-                    handleUpdateMeta({ priority: e.target.value });
-                  }}
-                  className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-ink-900 shadow-2xs hover:border-parchment-400 focus:outline-none cursor-pointer"
-                >
-                  <option value="CRITICAL">🔴 Critical</option>
-                  <option value="HIGH">🟠 High</option>
-                  <option value="MEDIUM">🔵 Medium</option>
-                  <option value="LOW">⚪ Low</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-ink-400" />
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-4 max-w-[1700px] mx-auto">
+      {/* Back Link */}
+      <div>
+        <Link
+          href="/ops/queue"
+          className="inline-flex items-center space-x-1.5 text-xs font-semibold text-ink-600 hover:text-forest-800 transition"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to Triage Queue</span>
+        </Link>
       </div>
 
       {/* 3-Column Split Workbench */}
       <div className="grid grid-cols-12 gap-5">
-        {/* COLUMN 1: Conversation Stream & Direct Reply (5 cols) */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs min-h-[700px]">
+        {/* COLUMN 1: Conversation History & Metadata Overrides (5 cols) */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs min-h-[760px]">
           <div>
-            <div className="flex items-center justify-between border-b border-parchment-200 pb-3">
-              <div className="flex items-center space-x-2">
-                <span className="font-editorial text-base font-bold text-ink-950">Conversation Thread</span>
-                <span className="rounded-full bg-parchment-200 px-2 py-0.5 text-[11px] font-semibold text-ink-700">
-                  {ticket.messages.length} messages
-                </span>
+            <div className="border-b border-parchment-200 pb-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-editorial text-xl font-bold text-ink-950 leading-tight">
+                    {ticket.subject}
+                  </h2>
+                  <p className="text-xs text-ink-500 mt-1">
+                    Ticket <span className="font-mono font-semibold text-forest-800">#{ticket.id.slice(-6).toUpperCase()}</span> · Raised by {ticket.author.name}
+                  </p>
+                </div>
+
+                <div className="relative inline-flex items-center shrink-0">
+                  <select
+                    value={currentStatus}
+                    onChange={(e) => {
+                      setCurrentStatus(e.target.value);
+                      handleUpdateMeta({ status: e.target.value });
+                    }}
+                    className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-forest-900 shadow-2xs hover:border-forest-600 focus:border-forest-700 focus:outline-none cursor-pointer"
+                  >
+                    <option value="OPEN">🟢 OPEN</option>
+                    <option value="IN_PROGRESS">🟡 IN PROGRESS</option>
+                    <option value="RESOLVED">✅ RESOLVED</option>
+                    <option value="CLOSED">⚪ CLOSED</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink-500" />
+                </div>
               </div>
-              <div className="flex items-center space-x-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full px-2.5 py-0.5">
+
+              {/* Triage Override Controls */}
+              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-parchment-100/70 p-2.5 text-xs">
+                <span className="inline-flex items-center space-x-1 font-bold text-forest-900 shrink-0">
+                  <Sparkles className="h-3.5 w-3.5 text-forest-700" />
+                  <span>Class:</span>
+                </span>
+
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={currentCategory}
+                    onChange={(e) => {
+                      setCurrentCategory(e.target.value);
+                      handleUpdateMeta({ category: e.target.value });
+                    }}
+                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-medium text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
+                </div>
+
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={currentPriority}
+                    onChange={(e) => {
+                      setCurrentPriority(e.target.value);
+                      handleUpdateMeta({ priority: e.target.value });
+                    }}
+                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-bold text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
+                  >
+                    <option value="CRITICAL">🔴 Critical</option>
+                    <option value="HIGH">🟠 High</option>
+                    <option value="MEDIUM">🔵 Medium</option>
+                    <option value="LOW">⚪ Low</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
+                </div>
+
+                <button
+                  onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
+                  className="ml-auto inline-flex items-center rounded-lg border border-forest-600/20 bg-white px-2.5 py-1 text-[11px] font-bold text-forest-800 shadow-2xs hover:bg-forest-50 transition cursor-pointer"
+                >
+                  {ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim'}
+                </button>
+              </div>
+            </div>
+
+            {/* Conversation Stream Header */}
+            <div className="mt-4 flex items-center justify-between border-b border-parchment-200 pb-2.5">
+              <span className="font-editorial text-sm font-bold text-ink-950">
+                Conversation History ({ticket.messages.length})
+              </span>
+              <div className="flex items-center space-x-1.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full px-2.5 py-0.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Live Sync</span>
               </div>
