@@ -8,7 +8,10 @@ async function main() {
   console.log('🌱 Starting database seed...');
 
   // 1. Locate sample data JSON
-  const sampleDataPath = 'c:\\Users\\bcchh\\Downloads\\FULLSTACK-SAMPLEDATA (1) (1).json';
+  const localSeedPath = path.join(process.cwd(), 'prisma', 'seed-data.json');
+  const fallbackSeedPath = 'c:\\Users\\bcchh\\Downloads\\FULLSTACK-SAMPLEDATA (1) (1).json';
+  const sampleDataPath = fs.existsSync(localSeedPath) ? localSeedPath : fallbackSeedPath;
+
   if (!fs.existsSync(sampleDataPath)) {
     throw new Error(`Sample data file not found at ${sampleDataPath}`);
   }

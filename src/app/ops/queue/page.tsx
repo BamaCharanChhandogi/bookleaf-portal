@@ -54,17 +54,22 @@ export default function OpsQueuePage() {
     fetchTickets();
   }, [statusFilter, categoryFilter, priorityFilter]);
 
-  // Real-time listener
+  // Real-time listener + polling interval
   useEffect(() => {
     const eventSource = new EventSource('/api/tickets/stream');
     eventSource.addEventListener('update', () => {
       fetchTickets();
     });
 
+    const pollInterval = setInterval(() => {
+      fetchTickets();
+    }, 6000);
+
     return () => {
       eventSource.close();
+      clearInterval(pollInterval);
     };
-  }, []);
+  }, [statusFilter, categoryFilter, priorityFilter]);
 
   const getSLAIndicator = (priority: string, createdAt: string) => {
     const hoursElapsed = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);

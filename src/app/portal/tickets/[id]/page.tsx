@@ -47,6 +47,12 @@ export default function TicketDetailPage({ params }: TicketDetailPageProps) {
 
   useEffect(() => {
     loadTicket();
+    // 5s real-time polling fallback
+    const pollInterval = setInterval(() => {
+      loadTicket();
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
   }, [params.id]);
 
   // Real-Time Server-Sent Events Listener
@@ -70,7 +76,7 @@ export default function TicketDetailPage({ params }: TicketDetailPageProps) {
 
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyMessage.trim() || !currentUser || !ticket) return;
+    if (!replyMessage.trim() || !ticket) return;
 
     try {
       setSending(true);
@@ -79,7 +85,7 @@ export default function TicketDetailPage({ params }: TicketDetailPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderRole: 'AUTHOR',
-          senderName: currentUser.name,
+          senderName: currentUser?.name || ticket.author?.name || 'Author',
           message: replyMessage.trim(),
         }),
       });

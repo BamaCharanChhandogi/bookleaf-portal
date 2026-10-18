@@ -40,10 +40,16 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
   // AI Co-Pilot State
   const [editableDraft, setEditableDraft] = useState('');
+  const [draftInitialized, setDraftInitialized] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [sendingDraft, setSendingDraft] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
   const [activeTone, setActiveTone] = useState<'EMPATHETIC' | 'CONCISE' | 'URGENT'>('EMPATHETIC');
   const [showGroundingDrawer, setShowGroundingDrawer] = useState(false);
+
+  // Quick Reply in Chat Thread
+  const [quickReply, setQuickReply] = useState('');
+  const [sendingQuickReply, setSendingQuickReply] = useState(false);
 
   // Internal Notes State
   const [newNote, setNewNote] = useState('');
@@ -69,7 +75,10 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
       setTicket(t);
 
       if (t) {
-        setEditableDraft(t.aiDraftResponse || '');
+        if (!draftInitialized) {
+          setEditableDraft(t.aiDraftResponse || '');
+          setDraftInitialized(true);
+        }
         setCurrentStatus(t.status);
         setCurrentPriority(t.priority);
         setCurrentCategory(t.category);
@@ -83,7 +92,13 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
   useEffect(() => {
     loadTicket();
-  }, [params.id]);
+    // 5s real-time polling fallback
+    const pollInterval = setInterval(() => {
+      loadTicket();
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [params.id, draftInitialized]);
 
   // Real-Time SSE Listener
   useEffect(() => {
@@ -142,12 +157,44 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
       });
 
       if (res.ok) {
+        setEditableDraft('');
+        setSendSuccess(true);
+        setTimeout(() => setSendSuccess(false), 5000);
         await loadTicket();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to dispatch response');
       }
     } catch (e) {
       console.error(e);
     } finally {
       setSendingDraft(false);
+    }
+  };
+
+  const handleSendQuickReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickReply.trim()) return;
+    try {
+      setSendingQuickReply(true);
+      const res = await fetch(`/api/tickets/${params.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderRole: 'ADMIN',
+          senderName: currentUser?.name || 'Aditi Rao (Senior Ops Lead)',
+          message: quickReply.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        setQuickReply('');
+        await loadTicket();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSendingQuickReply(false);
     }
   };
 
@@ -326,6 +373,27 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                 </div>
               ))}
             </div>
+
+            {/* Direct Reply Composer in Column 1 */}
+            <form onSubmit={handleSendQuickReply} className="mt-4 border-t border-parchment-200 pt-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={quickReply}
+                  onChange={(e) => setQuickReply(e.target.value)}
+                  placeholder="Type a quick direct reply to author..."
+                  className="flex-1 rounded-xl border border-parchment-300 bg-parchment-50 px-3.5 py-2 text-xs text-ink-950 placeholder:text-ink-400 focus:border-forest-700 focus:bg-white focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingQuickReply || !quickReply.trim()}
+                  className="inline-flex items-center space-x-1 rounded-xl bg-forest-800 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50"
+                >
+                  <Send className="h-3 w-3" />
+                  <span>{sendingQuickReply ? 'Sending...' : 'Reply'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
@@ -424,8 +492,16 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               value={editableDraft}
               onChange={(e) => setEditableDraft(e.target.value)}
               className="mt-3 w-full rounded-2xl border border-parchment-300 bg-white p-3.5 text-xs leading-relaxed text-ink-900 shadow-inner focus:border-forest-700 focus:outline-none"
-              placeholder="Review AI response draft..."
+              placeholder="Review AI response draft or type custom message..."
             />
+
+            {/* Send Success Banner */}
+            {sendSuccess && (
+              <div className="mt-2.5 flex items-center space-x-1.5 rounded-xl bg-forest-100/80 p-2.5 text-xs font-semibold text-forest-900 border border-forest-600/30">
+                <CheckCircle2 className="h-4 w-4 text-forest-700 shrink-0" />
+                <span>Response dispatched to author and saved to thread!</span>
+              </div>
+            )}
           </div>
 
           <div className="mt-4 pt-3 border-t border-forest-600/20 flex items-center justify-between">
@@ -436,7 +512,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
             <button
               onClick={handleSendDraft}
               disabled={sendingDraft || !editableDraft.trim()}
-              className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50"
+              className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition"
             >
               <Send className="h-3.5 w-3.5" />
               <span>{sendingDraft ? 'Sending...' : 'Approve & Send to Author'}</span>
