@@ -71,17 +71,6 @@ export default function OpsLayout({ children }: OpsLayoutProps) {
             </Link>
           </nav>
         </div>
-
-        {/* Operations Intelligence Status Badge */}
-        <div className="rounded-2xl border border-forest-600/20 bg-forest-50/60 p-4">
-          <div className="flex items-center space-x-2 text-xs font-bold text-forest-900">
-            <Sparkles className="h-4 w-4 text-forest-700" />
-            <span>Smart Operations Desk</span>
-          </div>
-          <p className="mt-1 text-[11px] text-ink-600 leading-relaxed">
-            Automated inquiry triage, SLA tracking, and grounded policy response drafting active.
-          </p>
-        </div>
       </aside>
 
       {/* Main Shell */}
@@ -101,7 +90,20 @@ export default function OpsLayout({ children }: OpsLayoutProps) {
             <span className="font-semibold text-ink-950 capitalize">Support Triage Queue</span>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3.5">
+            {/* Top-Right Smart Operations Status Badge */}
+            <div className="hidden sm:inline-flex items-center space-x-2 rounded-full border border-forest-600/20 bg-forest-50/90 px-3.5 py-1.5 text-xs font-semibold text-forest-900 shadow-2xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+              </span>
+              <Sparkles className="h-3.5 w-3.5 text-forest-700" />
+              <span>Smart Operations Active</span>
+              <span className="hidden lg:inline text-[10px] text-forest-700/70 font-normal border-l border-forest-600/20 pl-2">
+                Policy Grounding & SLA Tracking
+              </span>
+            </div>
+
             <UserNavMenu user={user} />
           </div>
         </header>

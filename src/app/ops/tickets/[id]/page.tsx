@@ -259,105 +259,149 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
   }
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto">
-      {/* Back Link */}
-      <div>
-        <Link
-          href="/ops/queue"
-          className="inline-flex items-center space-x-1.5 text-xs font-semibold text-ink-600 hover:text-forest-800 transition"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to Triage Queue</span>
-        </Link>
+    <div className="space-y-5 max-w-[1700px] mx-auto">
+      {/* Top Workbench Command Header Banner */}
+      <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs">
+        {/* Navigation & Breadcrumbs */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-parchment-200 pb-3.5">
+          <div className="flex items-center space-x-3">
+            <Link
+              href="/ops/queue"
+              className="inline-flex items-center space-x-1.5 rounded-lg border border-parchment-300 bg-parchment-50 px-2.5 py-1 text-xs font-semibold text-ink-700 hover:bg-parchment-100 hover:text-ink-950 transition"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Queue</span>
+            </Link>
+            <span className="text-parchment-400">/</span>
+            <span className="font-mono text-xs font-bold text-forest-800 bg-forest-50 border border-forest-600/20 px-2 py-0.5 rounded-md">
+              #{ticket.id.slice(-6).toUpperCase()}
+            </span>
+            <span className="text-xs text-ink-500">
+              Raised {new Date(ticket.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+
+          {/* Lead Assignment */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
+              className="inline-flex items-center space-x-1.5 rounded-xl border border-forest-600/25 bg-forest-50/70 px-3 py-1.5 text-xs font-bold text-forest-900 shadow-2xs hover:bg-forest-100 transition cursor-pointer"
+            >
+              <User className="h-3.5 w-3.5 text-forest-700" />
+              <span>{ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim Ticket'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Title & Primary Triage Selectors */}
+        <div className="mt-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="font-editorial text-2xl font-bold tracking-tight text-ink-950">
+              {ticket.subject}
+            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-600">
+              <span className="font-semibold text-ink-900">Author:</span>
+              <span className="font-medium text-forest-900">{ticket.author.name}</span>
+              <span className="text-parchment-400">•</span>
+              <span>{ticket.author.email}</span>
+              {ticket.author.city && (
+                <>
+                  <span className="text-parchment-400">•</span>
+                  <span>{ticket.author.city}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Override Controls Cluster */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Status Dropdown */}
+            <div className="relative inline-flex items-center">
+              <span className="mr-1.5 text-[11px] font-bold text-ink-500 uppercase">Status:</span>
+              <div className="relative">
+                <select
+                  value={currentStatus}
+                  onChange={(e) => {
+                    setCurrentStatus(e.target.value);
+                    handleUpdateMeta({ status: e.target.value });
+                  }}
+                  className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-forest-900 shadow-2xs hover:border-forest-600 focus:border-forest-700 focus:outline-none cursor-pointer"
+                >
+                  <option value="OPEN">🟢 OPEN</option>
+                  <option value="IN_PROGRESS">🟡 IN PROGRESS</option>
+                  <option value="RESOLVED">✅ RESOLVED</option>
+                  <option value="CLOSED">⚪ CLOSED</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-ink-500" />
+              </div>
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="relative inline-flex items-center">
+              <span className="mr-1.5 text-[11px] font-bold text-ink-500 uppercase">Category:</span>
+              <div className="relative">
+                <select
+                  value={currentCategory}
+                  onChange={(e) => {
+                    setCurrentCategory(e.target.value);
+                    handleUpdateMeta({ category: e.target.value });
+                  }}
+                  className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-semibold text-ink-800 shadow-2xs hover:border-parchment-400 focus:outline-none cursor-pointer"
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-ink-400" />
+              </div>
+            </div>
+
+            {/* Priority Dropdown */}
+            <div className="relative inline-flex items-center">
+              <span className="mr-1.5 text-[11px] font-bold text-ink-500 uppercase">Priority:</span>
+              <div className="relative">
+                <select
+                  value={currentPriority}
+                  onChange={(e) => {
+                    setCurrentPriority(e.target.value);
+                    handleUpdateMeta({ priority: e.target.value });
+                  }}
+                  className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-ink-900 shadow-2xs hover:border-parchment-400 focus:outline-none cursor-pointer"
+                >
+                  <option value="CRITICAL">🔴 Critical</option>
+                  <option value="HIGH">🟠 High</option>
+                  <option value="MEDIUM">🔵 Medium</option>
+                  <option value="LOW">⚪ Low</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-ink-400" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 3-Column Split Workbench */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* COLUMN 1: Conversation History & Metadata Overrides (5 cols) */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm min-h-[760px]">
+      <div className="grid grid-cols-12 gap-5">
+        {/* COLUMN 1: Conversation Stream & Direct Reply (5 cols) */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs min-h-[700px]">
           <div>
-            <div className="border-b border-parchment-200 pb-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="font-editorial text-xl font-bold text-ink-950">
-                    {ticket.subject}
-                  </h2>
-                  <p className="text-xs text-ink-500 mt-0.5">
-                    Ticket #{ticket.id.slice(-6)} · Raised by {ticket.author.name}
-                  </p>
-                </div>
-
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={currentStatus}
-                    onChange={(e) => {
-                      setCurrentStatus(e.target.value);
-                      handleUpdateMeta({ status: e.target.value });
-                    }}
-                    className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3 pr-7 py-1.5 text-xs font-bold text-ink-800 shadow-2xs hover:border-parchment-400 focus:border-forest-700 focus:outline-none cursor-pointer"
-                  >
-                    <option value="OPEN">OPEN</option>
-                    <option value="IN_PROGRESS">IN PROGRESS</option>
-                    <option value="RESOLVED">RESOLVED</option>
-                    <option value="CLOSED">CLOSED</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink-400" />
-                </div>
-              </div>
-
-              {/* Triage Override Controls */}
-              <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl bg-parchment-100/70 p-2.5 text-xs">
-                <span className="inline-flex items-center space-x-1.5 font-bold text-forest-900 shrink-0">
-                  <Sparkles className="h-3.5 w-3.5 text-forest-700" />
-                  <span>Classification:</span>
+            <div className="flex items-center justify-between border-b border-parchment-200 pb-3">
+              <div className="flex items-center space-x-2">
+                <span className="font-editorial text-base font-bold text-ink-950">Conversation Thread</span>
+                <span className="rounded-full bg-parchment-200 px-2 py-0.5 text-[11px] font-semibold text-ink-700">
+                  {ticket.messages.length} messages
                 </span>
-
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={currentCategory}
-                    onChange={(e) => {
-                      setCurrentCategory(e.target.value);
-                      handleUpdateMeta({ category: e.target.value });
-                    }}
-                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-medium text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
-                </div>
-
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={currentPriority}
-                    onChange={(e) => {
-                      setCurrentPriority(e.target.value);
-                      handleUpdateMeta({ priority: e.target.value });
-                    }}
-                    className="appearance-none rounded-lg border border-parchment-300 bg-white pl-2.5 pr-6 py-1 text-xs font-bold text-ink-800 hover:border-parchment-400 focus:outline-none cursor-pointer"
-                  >
-                    <option value="CRITICAL">🔴 Critical</option>
-                    <option value="HIGH">🟠 High</option>
-                    <option value="MEDIUM">🔵 Medium</option>
-                    <option value="LOW">⚪ Low</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-ink-400" />
-                </div>
-
-                <button
-                  onClick={() => handleUpdateMeta({ assignedTo: currentUser?.name || 'Aditi Rao' })}
-                  className="ml-auto inline-flex items-center rounded-lg border border-forest-600/20 bg-white px-2.5 py-1 text-[11px] font-bold text-forest-800 shadow-2xs hover:bg-forest-50 transition"
-                >
-                  {ticket.assignedTo ? `Lead: ${ticket.assignedTo}` : '👉 Claim Ticket'}
-                </button>
+              </div>
+              <div className="flex items-center space-x-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full px-2.5 py-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live Sync</span>
               </div>
             </div>
 
             {/* Messages Thread */}
-            <div className="my-4 max-h-[500px] space-y-3 overflow-y-auto pr-2">
+            <div className="my-4 max-h-[520px] space-y-3.5 overflow-y-auto pr-2">
               {ticket.messages.map((m: any) => (
                 <div
                   key={m.id}
@@ -372,10 +416,10 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                   </div>
 
                   <div
-                    className={`max-w-[90%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${
+                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap ${
                       m.senderRole === 'ADMIN'
-                        ? 'bg-forest-800 text-white rounded-tr-none'
-                        : 'border border-parchment-300 bg-parchment-50 text-ink-950 rounded-tl-none shadow-xs'
+                        ? 'bg-forest-800 text-white rounded-tr-none shadow-xs'
+                        : 'border border-parchment-300 bg-[#faf9f6] text-ink-950 rounded-tl-none shadow-2xs'
                     }`}
                   >
                     {m.message}
@@ -383,32 +427,32 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                 </div>
               ))}
             </div>
-
-            {/* Direct Reply Composer in Column 1 */}
-            <form onSubmit={handleSendQuickReply} className="mt-4 border-t border-parchment-200 pt-3">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={quickReply}
-                  onChange={(e) => setQuickReply(e.target.value)}
-                  placeholder="Type a quick direct reply to author..."
-                  className="flex-1 rounded-xl border border-parchment-300 bg-parchment-50 px-3.5 py-2 text-xs text-ink-950 placeholder:text-ink-400 focus:border-forest-700 focus:bg-white focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={sendingQuickReply || !quickReply.trim()}
-                  className="inline-flex items-center space-x-1 rounded-xl bg-forest-800 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50"
-                >
-                  <Send className="h-3 w-3" />
-                  <span>{sendingQuickReply ? 'Sending...' : 'Reply'}</span>
-                </button>
-              </div>
-            </form>
           </div>
+
+          {/* Direct Reply Composer in Column 1 */}
+          <form onSubmit={handleSendQuickReply} className="mt-3 border-t border-parchment-200 pt-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={quickReply}
+                onChange={(e) => setQuickReply(e.target.value)}
+                placeholder="Type a direct response to author..."
+                className="flex-1 rounded-xl border border-parchment-300 bg-parchment-50 px-3.5 py-2.5 text-xs text-ink-950 placeholder:text-ink-400 focus:border-forest-700 focus:bg-white focus:outline-none transition"
+              />
+              <button
+                type="submit"
+                disabled={sendingQuickReply || !quickReply.trim()}
+                className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
+              >
+                <Send className="h-3.5 w-3.5" />
+                <span>{sendingQuickReply ? 'Sending...' : 'Send'}</span>
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* COLUMN 2: AI Co-Pilot 2.0 Response Composer (4 cols) */}
-        <div className="col-span-12 lg:col-span-4 rounded-2xl border border-forest-600/30 bg-forest-50/20 p-6 shadow-sm flex flex-col justify-between min-h-[760px]">
+        {/* COLUMN 2: Policy-Grounded Draft Assistant (4 cols) */}
+        <div className="col-span-12 lg:col-span-4 rounded-2xl border border-forest-600/30 bg-forest-50/25 p-5 shadow-2xs flex flex-col justify-between min-h-[700px]">
           <div>
             <div className="flex items-center justify-between border-b border-forest-600/20 pb-3">
               <div className="flex items-center space-x-1.5 text-xs font-bold text-forest-900">
@@ -418,9 +462,9 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
               <button
                 onClick={() => setShowGroundingDrawer(true)}
-                className="inline-flex items-center space-x-1 text-[11px] font-semibold text-forest-700 hover:underline"
+                className="inline-flex items-center space-x-1 text-[11px] font-semibold text-forest-700 hover:underline cursor-pointer"
               >
-                <span>View Grounding Policy</span>
+                <span>Grounding Rules</span>
                 <ExternalLink className="h-3 w-3" />
               </button>
             </div>
@@ -432,7 +476,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               </span>
               <button
                 onClick={() => handleToneChange('EMPATHETIC')}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition cursor-pointer ${
                   activeTone === 'EMPATHETIC'
                     ? 'bg-forest-800 text-white shadow-2xs'
                     : 'border border-parchment-300 bg-white text-ink-700 hover:bg-parchment-50'
@@ -442,7 +486,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               </button>
               <button
                 onClick={() => handleToneChange('CONCISE')}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition cursor-pointer ${
                   activeTone === 'CONCISE'
                     ? 'bg-forest-800 text-white shadow-2xs'
                     : 'border border-parchment-300 bg-white text-ink-700 hover:bg-parchment-50'
@@ -452,7 +496,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               </button>
               <button
                 onClick={() => handleToneChange('URGENT')}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition cursor-pointer ${
                   activeTone === 'URGENT'
                     ? 'bg-forest-800 text-white shadow-2xs'
                     : 'border border-parchment-300 bg-white text-ink-700 hover:bg-parchment-50'
@@ -470,9 +514,9 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                     'As per BookLeaf Policy, royalties follow an 80/20 net profit split (calculated quarterly and paid within 45 days).'
                   )
                 }
-                className="rounded border border-parchment-300 bg-white px-2 py-0.5 text-[10px] text-ink-700 hover:bg-parchment-100"
+                className="rounded border border-parchment-300 bg-white px-2 py-1 text-[10px] font-medium text-ink-700 hover:bg-parchment-100 transition cursor-pointer"
               >
-                + 80/20 Net Profit Rule
+                + 80/20 Profit Rule
               </button>
               <button
                 onClick={() =>
@@ -480,7 +524,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                     'We will arrange a 100% free reprint batch from our Delhi print facility within 5–7 business days.'
                   )
                 }
-                className="rounded border border-parchment-300 bg-white px-2 py-0.5 text-[10px] text-ink-700 hover:bg-parchment-100"
+                className="rounded border border-parchment-300 bg-white px-2 py-1 text-[10px] font-medium text-ink-700 hover:bg-parchment-100 transition cursor-pointer"
               >
                 + Free Reprint Guarantee
               </button>
@@ -490,7 +534,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                     'Amounts below the ₹1,000 threshold roll over safely to combine with next quarter’s sales.'
                   )
                 }
-                className="rounded border border-parchment-300 bg-white px-2 py-0.5 text-[10px] text-ink-700 hover:bg-parchment-100"
+                className="rounded border border-parchment-300 bg-white px-2 py-1 text-[10px] font-medium text-ink-700 hover:bg-parchment-100 transition cursor-pointer"
               >
                 + ₹1,000 Rollover Rule
               </button>
@@ -498,11 +542,11 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
 
             {/* Response Draft Textarea */}
             <textarea
-              rows={14}
+              rows={13}
               value={editableDraft}
               onChange={(e) => setEditableDraft(e.target.value)}
               className="mt-3 w-full rounded-2xl border border-parchment-300 bg-white p-3.5 text-xs leading-relaxed text-ink-900 shadow-inner focus:border-forest-700 focus:outline-none"
-              placeholder="Review AI response draft or type custom message..."
+              placeholder="Review AI response draft or customize message..."
             />
 
             {/* Send Success Banner */}
@@ -514,15 +558,15 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
             )}
           </div>
 
-          <div className="mt-4 pt-3 border-t border-forest-600/20 flex items-center justify-between">
+          <div className="mt-3 pt-3 border-t border-forest-600/20 flex items-center justify-between">
             <span className="text-[10px] text-ink-500">
-              Calibrate draft before dispatching to author
+              Calibrated with BookLeaf policies
             </span>
 
             <button
               onClick={handleSendDraft}
               disabled={sendingDraft || !editableDraft.trim()}
-              className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition"
+              className="inline-flex items-center space-x-1.5 rounded-xl bg-forest-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
             >
               <Send className="h-3.5 w-3.5" />
               <span>{sendingDraft ? 'Sending...' : 'Approve & Send to Author'}</span>
@@ -533,7 +577,7 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
         {/* COLUMN 3: Author Dossier & Private Internal Notes (3 cols) */}
         <div className="col-span-12 lg:col-span-3 space-y-4">
           {/* Author Dossier */}
-          <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs">
             <div className="flex items-center space-x-2 border-b border-parchment-200 pb-3">
               <User className="h-4 w-4 text-forest-700" />
               <h3 className="font-editorial text-sm font-bold text-ink-950">
@@ -541,14 +585,14 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
               </h3>
             </div>
 
-            <div className="mt-3 space-y-2 text-xs">
+            <div className="mt-3 space-y-2.5 text-xs">
               <div>
-                <span className="text-ink-500">Author Name</span>
-                <p className="font-semibold text-ink-900">{ticket.author.name}</p>
+                <span className="text-ink-500 text-[11px]">Author Name</span>
+                <p className="font-bold text-ink-900 text-sm">{ticket.author.name}</p>
               </div>
               <div>
-                <span className="text-ink-500">Email & Location</span>
-                <p className="text-ink-800">{ticket.author.email}</p>
+                <span className="text-ink-500 text-[11px]">Email & Location</span>
+                <p className="font-medium text-ink-800">{ticket.author.email}</p>
                 <p className="text-ink-600">{ticket.author.city || 'India'}</p>
               </div>
             </div>
@@ -566,13 +610,13 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
                 </p>
 
                 <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="rounded-lg bg-parchment-50 p-2">
-                    <span className="text-ink-500">Copies Sold</span>
-                    <p className="font-bold text-ink-900">{ticket.book.totalCopiesSold}</p>
+                  <div className="rounded-xl bg-parchment-50 p-2.5 border border-parchment-200/60">
+                    <span className="text-ink-500 text-[10px] font-medium">Copies Sold</span>
+                    <p className="font-bold text-ink-900 text-sm mt-0.5">{ticket.book.totalCopiesSold}</p>
                   </div>
-                  <div className="rounded-lg bg-parchment-50 p-2">
-                    <span className="text-ink-500">Pending</span>
-                    <p className="font-bold text-gilded-600">₹{ticket.book.royaltyPending}</p>
+                  <div className="rounded-xl bg-parchment-50 p-2.5 border border-parchment-200/60">
+                    <span className="text-ink-500 text-[10px] font-medium">Pending Royalty</span>
+                    <p className="font-bold text-forest-800 text-sm mt-0.5">₹{ticket.book.royaltyPending}</p>
                   </div>
                 </div>
               </div>
@@ -580,44 +624,44 @@ export default function OpsTicketDetailPage({ params }: OpsTicketDetailPageProps
           </div>
 
           {/* Internal Notes */}
-          <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-parchment-300 bg-white p-5 shadow-2xs">
             <div className="flex items-center space-x-2 border-b border-parchment-200 pb-3">
-              <Bookmark className="h-4 w-4 text-gilded-600" />
+              <Bookmark className="h-4 w-4 text-forest-700" />
               <h3 className="font-editorial text-sm font-bold text-ink-950">
                 Internal Ops Notes
               </h3>
             </div>
 
-            <div className="my-3 max-h-44 space-y-2 overflow-y-auto">
+            <div className="my-3 max-h-48 space-y-2 overflow-y-auto">
               {ticket.internalNotes?.length === 0 ? (
-                <p className="text-xs text-ink-400 italic">No internal notes added yet</p>
+                <p className="text-xs text-ink-400 italic py-2">No internal notes added yet</p>
               ) : (
                 ticket.internalNotes.map((note: any) => (
-                  <div key={note.id} className="rounded-xl bg-amber-50/80 p-2.5 text-xs border border-amber-200/50">
+                  <div key={note.id} className="rounded-xl bg-amber-50/90 p-2.5 text-xs border border-amber-200/70">
                     <div className="flex items-center justify-between text-[10px] text-amber-800">
                       <span className="font-bold">{note.adminName}</span>
                       <span>{new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <p className="mt-1 text-amber-950">{note.note}</p>
+                    <p className="mt-1 text-amber-950 leading-relaxed">{note.note}</p>
                   </div>
                 ))
               )}
             </div>
 
-            <form onSubmit={handleAddNote} className="mt-2">
+            <form onSubmit={handleAddNote} className="mt-2.5">
               <input
                 type="text"
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Add private note for ops..."
-                className="w-full rounded-xl border border-parchment-300 px-3 py-1.5 text-xs text-ink-900 focus:border-forest-700 focus:outline-none"
+                className="w-full rounded-xl border border-parchment-300 px-3 py-2 text-xs text-ink-900 focus:border-forest-700 focus:outline-none transition"
               />
               <button
                 type="submit"
                 disabled={addingNote || !newNote.trim()}
-                className="mt-2 w-full rounded-xl bg-ink-900 py-1.5 text-xs font-semibold text-white hover:bg-ink-950 disabled:opacity-50"
+                className="mt-2 w-full rounded-xl bg-forest-800 py-2 text-xs font-bold text-white shadow-2xs hover:bg-forest-900 disabled:opacity-50 transition cursor-pointer"
               >
-                Add Private Note
+                {addingNote ? 'Saving Note...' : 'Add Private Note'}
               </button>
             </form>
           </div>
