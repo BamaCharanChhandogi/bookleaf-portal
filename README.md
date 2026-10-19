@@ -4,6 +4,7 @@ An industry-grade, AI-assisted communication and ticketing system built for **Bo
 
 - **🌐 Live Production Deployment:** [https://bookleaf-portal-phi.vercel.app](https://bookleaf-portal-phi.vercel.app)
 - **📂 GitHub Repository:** [https://github.com/BamaCharanChhandogi/bookleaf-portal](https://github.com/BamaCharanChhandogi/bookleaf-portal)
+- **📝 1-Page Architectural Write-Up:** [ARCHITECTURE_WRITEUP.md](./ARCHITECTURE_WRITEUP.md)
 - **📖 OpenAPI / Swagger Documentation:** [https://bookleaf-portal-phi.vercel.app/api/docs](https://bookleaf-portal-phi.vercel.app/api/docs)
 
 ---
