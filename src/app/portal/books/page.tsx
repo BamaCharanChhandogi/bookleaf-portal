@@ -108,6 +108,7 @@ export default function AuthorBooksPage() {
               <tr>
                 <th className="p-3">Title & ISBN</th>
                 <th className="p-3">Genre</th>
+                <th className="p-3">Publication Date</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">MRP</th>
                 <th className="p-3">Royalty/Copy</th>
@@ -125,6 +126,11 @@ export default function AuthorBooksPage() {
                     <p className="font-mono text-[10px] text-ink-500">{b.isbn}</p>
                   </td>
                   <td className="p-3 text-ink-700">{b.genre}</td>
+                  <td className="p-3 text-ink-600 font-medium">
+                    {b.publicationDate ? new Date(b.publicationDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : (
+                      <span className="italic text-ink-400">In Production</span>
+                    )}
+                  </td>
                   <td className="p-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${

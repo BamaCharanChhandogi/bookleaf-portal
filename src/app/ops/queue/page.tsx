@@ -32,6 +32,7 @@ export default function OpsQueuePage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('ALL'); // 'ALL' | 'OLDEST_FIRST' | 'TODAY' | 'LAST_7_DAYS'
 
   const fetchTickets = async () => {
     try {
@@ -43,7 +44,26 @@ export default function OpsQueuePage() {
 
       const res = await fetch(`/api/tickets?${params.toString()}`);
       const data = await res.json();
-      setTickets(data.tickets || []);
+      let list = data.tickets || [];
+
+      // Apply Date Filter & Sorting
+      const now = Date.now();
+      if (dateFilter === 'TODAY') {
+        list = list.filter((t: any) => now - new Date(t.createdAt).getTime() <= 24 * 60 * 60 * 1000);
+      } else if (dateFilter === 'LAST_7_DAYS') {
+        list = list.filter((t: any) => now - new Date(t.createdAt).getTime() <= 7 * 24 * 60 * 60 * 1000);
+      } else if (dateFilter === 'OLDEST_FIRST') {
+        // Prioritize unresolved tickets sorted oldest to newest
+        list.sort((a: any, b: any) => {
+          const aUnresolved = a.status === 'OPEN' || a.status === 'IN_PROGRESS';
+          const bUnresolved = b.status === 'OPEN' || b.status === 'IN_PROGRESS';
+          if (aUnresolved && !bUnresolved) return -1;
+          if (!aUnresolved && bUnresolved) return 1;
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
+      }
+
+      setTickets(list);
     } catch (e) {
       console.error(e);
     } finally {
@@ -53,7 +73,7 @@ export default function OpsQueuePage() {
 
   useEffect(() => {
     fetchTickets();
-  }, [statusFilter, categoryFilter, priorityFilter]);
+  }, [statusFilter, categoryFilter, priorityFilter, dateFilter]);
 
   // Real-time listener + polling interval
   useEffect(() => {
@@ -160,6 +180,21 @@ export default function OpsQueuePage() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-ink-400" />
           </div>
+
+          {/* Date & Urgency Filter */}
+          <div className="relative inline-flex items-center">
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="appearance-none rounded-xl border border-parchment-300 bg-white pl-3.5 pr-8 py-2 text-xs font-semibold text-ink-800 shadow-2xs hover:border-parchment-400 focus:border-forest-700 focus:outline-none cursor-pointer"
+            >
+              <option value="ALL">Date: All</option>
+              <option value="OLDEST_FIRST">⚡ Oldest Unresolved First</option>
+              <option value="TODAY">Received Today</option>
+              <option value="LAST_7_DAYS">Past 7 Days</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-ink-400" />
+          </div>
         </div>
       </div>
 
@@ -189,20 +224,43 @@ export default function OpsQueuePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-parchment-200">
-                {tickets.map((t) => (
-                  <tr key={t.id} className="hover:bg-parchment-50/70 transition">
-                    <td className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-ink-950">{t.author.name}</span>
-                        {t.book && (
-                          <span className="text-[10px] text-ink-500">
-                            • {t.book.title}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 font-bold text-ink-900 line-clamp-1">{t.subject}</p>
-                      <p className="text-[11px] text-ink-500 line-clamp-1">{t.description}</p>
-                    </td>
+                {tickets.map((t) => {
+                  const isUnresolved = t.status === 'OPEN' || t.status === 'IN_PROGRESS';
+                  const isCritical = t.priority === 'CRITICAL';
+                  const hoursOld = (Date.now() - new Date(t.createdAt).getTime()) / (1000 * 60 * 60);
+                  const isUrgentOrOld = isUnresolved && (isCritical || hoursOld >= 24);
+
+                  return (
+                    <tr
+                      key={t.id}
+                      className={`transition ${
+                        isUrgentOrOld
+                          ? 'bg-rose-50/40 hover:bg-rose-50/70 border-l-4 border-l-rose-500'
+                          : 'hover:bg-parchment-50/70'
+                      }`}
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold text-ink-950">{t.author.name}</span>
+                          {t.book && (
+                            <span className="text-[10px] text-ink-500">
+                              • {t.book.title}
+                            </span>
+                          )}
+                          {isCritical && isUnresolved && (
+                            <span className="rounded bg-rose-100 text-rose-800 text-[9px] font-extrabold px-1.5 py-0.2 uppercase tracking-wider">
+                              CRITICAL
+                            </span>
+                          )}
+                          {hoursOld >= 48 && isUnresolved && (
+                            <span className="rounded bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.2 uppercase tracking-wider">
+                              OLDEST BACKLOG
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 font-bold text-ink-900 line-clamp-1">{t.subject}</p>
+                        <p className="text-[11px] text-ink-500 line-clamp-1">{t.description}</p>
+                      </td>
 
                     <td className="p-4">
                       <span className="rounded bg-parchment-100 px-2 py-0.5 text-[10px] font-bold text-forest-800 whitespace-nowrap">
@@ -256,7 +314,8 @@ export default function OpsQueuePage() {
                       </Link>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

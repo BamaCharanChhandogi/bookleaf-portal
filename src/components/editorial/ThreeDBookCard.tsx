@@ -91,7 +91,12 @@ export function ThreeDBookCard({ book, onOpenLedger, onRaiseQuery }: BookCardPro
               ISBN: {book.isbn}
             </p>
 
-            <p className="mt-1 text-[11px] text-ink-600">
+            <div className="mt-1 flex items-center justify-between text-[11px] text-ink-600">
+              <span>{book.publicationDate ? `Pub: ${new Date(book.publicationDate).toLocaleDateString([], { month: 'short', year: 'numeric' })}` : 'In Production'}</span>
+              <span className="font-semibold text-ink-900">{book.mrp ? `MRP: ₹${book.mrp}` : ''}</span>
+            </div>
+
+            <p className="mt-0.5 text-[10px] text-ink-500">
               Print Facility: <strong>{book.printPartner || 'In-House Delhi'}</strong>
             </p>
           </div>

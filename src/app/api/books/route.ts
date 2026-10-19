@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { verifySession } from '@/lib/session';
 
 export async function GET(req: NextRequest) {
   try {
+    const token = req.cookies.get('bookleaf_token')?.value;
+    const session = token ? await verifySession(token) : null;
+
     const { searchParams } = new URL(req.url);
-    const authorId = searchParams.get('authorId');
+    const requestedAuthorId = searchParams.get('authorId');
 
     const whereClause: any = {};
-    if (authorId) {
-      whereClause.authorId = authorId;
+
+    // RBAC: Authors can ONLY access their own catalog; Admins can access all or filter by author
+    if (session?.role === 'AUTHOR') {
+      whereClause.authorId = session.id;
+    } else if (requestedAuthorId) {
+      whereClause.authorId = requestedAuthorId;
     }
 
     const books = await prisma.book.findMany({

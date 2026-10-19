@@ -12,6 +12,9 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
+  Paperclip,
+  UploadCloud,
+  X,
 } from 'lucide-react';
 
 function TicketsContent() {
@@ -28,6 +31,7 @@ function TicketsContent() {
   const [selectedBookId, setSelectedBookId] = useState(preselectedBookId);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [attachmentName, setAttachmentName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const loadData = async () => {
@@ -79,6 +83,7 @@ function TicketsContent() {
           bookId: selectedBookId === 'GENERAL' ? null : selectedBookId,
           subject: subject.trim(),
           description: description.trim(),
+          attachmentUrl: attachmentName ? `https://storage.bookleafpub.com/attachments/${attachmentName}` : null,
         }),
       });
 
@@ -86,6 +91,7 @@ function TicketsContent() {
         setSubject('');
         setDescription('');
         setSelectedBookId('GENERAL');
+        setAttachmentName(null);
         setShowModal(false);
         await loadData();
       }
@@ -270,6 +276,47 @@ function TicketsContent() {
                   placeholder="Provide complete details about your query..."
                   className="mt-1 w-full rounded-xl border border-parchment-300 px-3 py-2 text-xs text-ink-900 focus:border-forest-700 focus:outline-none"
                 />
+              </div>
+
+              {/* Optional File Attachment (UI only per specification) */}
+              <div>
+                <label className="block text-xs font-semibold text-ink-800">
+                  File Attachment <span className="font-normal text-ink-400">(Optional)</span>
+                </label>
+                <div className="mt-1">
+                  {!attachmentName ? (
+                    <label className="flex flex-col items-center justify-center rounded-xl border border-dashed border-parchment-300 bg-parchment-50/50 p-3.5 transition hover:bg-parchment-100/70 hover:border-forest-600 cursor-pointer">
+                      <div className="flex items-center space-x-2 text-ink-600">
+                        <UploadCloud className="h-4 w-4 text-forest-700" />
+                        <span className="text-xs font-medium">Click to select photo or document</span>
+                      </div>
+                      <span className="text-[10px] text-ink-400 mt-0.5">PNG, JPG, PDF up to 10MB (e.g. proof of misprint or royalty statement)</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setAttachmentName(file.name);
+                        }}
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl border border-forest-600/30 bg-forest-50/50 px-3 py-2 text-xs">
+                      <div className="flex items-center space-x-2 truncate">
+                        <Paperclip className="h-3.5 w-3.5 text-forest-700 shrink-0" />
+                        <span className="font-semibold text-forest-900 truncate">{attachmentName}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAttachmentName(null)}
+                        className="ml-2 text-ink-400 hover:text-red-600"
+                        title="Remove attachment"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 border-t border-parchment-200 pt-4">

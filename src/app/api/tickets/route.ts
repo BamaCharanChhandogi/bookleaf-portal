@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { classifyTicket, generateAIDraftResponse } from '@/lib/ai/gemini';
 import { broadcastTicketUpdate } from '@/lib/sse';
+import { verifySession } from '@/lib/session';
 
 export async function GET(req: NextRequest) {
   try {
+    const token = req.cookies.get('bookleaf_token')?.value;
+    const session = token ? await verifySession(token) : null;
+
     const { searchParams } = new URL(req.url);
     const authorId = searchParams.get('authorId');
     const status = searchParams.get('status');
@@ -12,7 +16,14 @@ export async function GET(req: NextRequest) {
     const priority = searchParams.get('priority');
 
     const where: any = {};
-    if (authorId) where.authorId = authorId;
+
+    // RBAC: Authors can ONLY see their own tickets; Admins see all
+    if (session?.role === 'AUTHOR') {
+      where.authorId = session.id;
+    } else if (authorId) {
+      where.authorId = authorId;
+    }
+
     if (status && status !== 'ALL') where.status = status;
     if (category && category !== 'ALL') where.category = category;
     if (priority && priority !== 'ALL') where.priority = priority;
@@ -34,7 +45,12 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ tickets });
+    // Data Privacy: Strip internalNotes if caller is an author
+    const sanitizedTickets = session?.role === 'AUTHOR'
+      ? tickets.map(({ internalNotes, ...rest }) => rest)
+      : tickets;
+
+    return NextResponse.json({ tickets: sanitizedTickets });
   } catch (error) {
     console.error('Tickets GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch tickets' }, { status: 500 });

@@ -1,9 +1,13 @@
 import { NextRequest } from 'next/server';
 import { ticketEvents, TicketUpdatePayload } from '@/lib/sse';
+import { verifySession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const token = req.cookies.get('bookleaf_token')?.value;
+  const session = token ? await verifySession(token) : null;
+
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder();
@@ -13,6 +17,15 @@ export async function GET(req: NextRequest) {
 
       const listener = (payload: TicketUpdatePayload) => {
         try {
+          // Data Isolation: Never broadcast internal notes to author connections
+          if (session?.role === 'AUTHOR' && payload.type === 'NOTE_ADDED') {
+            return;
+          }
+          // Tenancy Isolation: Never broadcast updates belonging to another author
+          if (session?.role === 'AUTHOR' && payload.authorId && payload.authorId !== session.id) {
+            return;
+          }
+
           const data = `event: update\ndata: ${JSON.stringify(payload)}\n\n`;
           controller.enqueue(encoder.encode(data));
         } catch (e) {
