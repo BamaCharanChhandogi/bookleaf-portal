@@ -81,7 +81,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY || $node[\"Auth & Idempotency Filter\"].json.geminiKey || \"AIzaSyFakeKeyFallback\" }}",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY || 'AIzaSyAhq0J66UNsbXe8K__r7kIqK6vqdsN3ljM' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
