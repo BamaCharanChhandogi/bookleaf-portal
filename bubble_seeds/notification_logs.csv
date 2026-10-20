@@ -1,0 +1,2 @@
+Log_ID,Author_ID,Author_Name,Author_Email,Trigger_Type,Status,Timestamp,Summary_Snippet,Error_Message
+LOG001,AUTH001,"Priya Sharma",priya.sharma@email.com,SINGLE,SUCCESS,2026-10-20T08:30:00Z,"Dear Priya, Here is your BookLeaf royalty overview for Q3. Total earned: ₹11,970...",

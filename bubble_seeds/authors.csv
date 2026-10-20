@@ -1,0 +1,12 @@
+Author_ID,Name,Email,Phone,City,Role,Total_Books,Total_Royalty_Earned,Royalty_Paid,Royalty_Pending,Payout_Status,Last_Payout_Date
+ADMIN001,"Aditi Rao (Senior Ops Lead)",admin@bookleaf.com,+91-98111-22334,Delhi,ADMIN,0,0,0,0,FULLY_PAID,
+AUTH001,"Priya Sharma",priya.sharma@email.com,+91-98765-43210,Mumbai,AUTHOR,2,19908,16338,3570,OVERDUE,2025-12-01
+AUTH002,"Rohit Kapoor",rohit.kapoor@email.com,+91-87654-32109,Delhi,AUTHOR,2,84024,71000,13024,OVERDUE,2025-11-15
+AUTH003,"Ananya Reddy",ananya.reddy@email.com,+91-76543-21098,Hyderabad,AUTHOR,1,2546,0,2546,OVERDUE,
+AUTH004,"Vikram Joshi",vikram.joshi@email.com,+91-65432-10987,Pune,AUTHOR,2,15195,11845,3350,OVERDUE,2025-12-01
+AUTH005,"Meera Nair",meera.nair@email.com,+91-54321-09876,Kochi,AUTHOR,2,25295,22240,3055,OVERDUE,2025-12-01
+AUTH006,"Arjun Malhotra",arjun.malhotra@email.com,+91-43210-98765,Chandigarh,AUTHOR,1,2464,0,2464,OVERDUE,
+AUTH007,"Sneha Kulkarni",sneha.kulkarni@email.com,+91-32109-87654,Bangalore,AUTHOR,3,60865,53000,7865,OVERDUE,2025-11-15
+AUTH008,"Farhan Sheikh",farhan.sheikh@email.com,+91-21098-76543,Lucknow,AUTHOR,1,3120,3120,0,FULLY_PAID,2025-12-01
+AUTH009,"Kavita Deshmukh",kavita.deshmukh@email.com,+91-10987-65432,Nagpur,AUTHOR,2,850,0,850,OVERDUE,
+AUTH010,"Diya Chatterjee",diya.chatterjee@email.com,+91-09876-54321,Kolkata,AUTHOR,2,29115,25000,4115,OVERDUE,2025-11-15

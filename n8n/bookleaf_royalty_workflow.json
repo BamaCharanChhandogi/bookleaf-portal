@@ -1,0 +1,241 @@
+{
+  "name": "BookLeaf - Author Royalty Dashboard & Automated Notification System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bookleaf-royalty-summary",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-trigger",
+      "name": "Bubble Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 320],
+      "webhookId": "bookleaf-royalty-summary"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 1: Validate Webhook Secret Authentication\nconst headers = $input.item.json.headers || {};\nconst authSecret = headers['x-bookleaf-secret'] || $input.item.json.body?.secret || '';\nconst EXPECTED_SECRET = 'bk_live_sec_9941a';\n\nif (authSecret !== EXPECTED_SECRET) {\n  throw new Error('401 Unauthorized: Invalid or missing x-bookleaf-secret header');\n}\n\n// Step 2: Idempotency Check (In-memory execution lock to prevent double-clicks)\nconst body = $input.item.json.body || {};\nconst authorId = body.authorId || body.author_id;\nconst timestamp = Date.now();\n\nif (!authorId) {\n  throw new Error('400 Bad Request: authorId is required');\n}\n\n// Check global deduplication cache\nglobalThis.__bookleaf_locks = globalThis.__bookleaf_locks || {};\nconst lastExecution = globalThis.__bookleaf_locks[authorId];\n\nif (lastExecution && (timestamp - lastExecution < 60000)) {\n  return [{\n    json: {\n      isDuplicate: true,\n      authorId,\n      message: 'Idempotency: Request throttled. Summary already generated within last 60 seconds.',\n      status: 'IGNORED'\n    }\n  }];\n}\n\nglobalThis.__bookleaf_locks[authorId] = timestamp;\n\nreturn [{\n  json: {\n    isDuplicate: false,\n    authorId,\n    authorName: body.name || body.authorName || 'Author',\n    authorEmail: body.email || body.authorEmail,\n    city: body.city || 'India',\n    books: body.books || [],\n    totalEarned: body.totalRoyaltyEarned || 0,\n    totalPaid: body.royaltyPaid || 0,\n    totalPending: body.royaltyPending || 0,\n    lastPayoutDate: body.lastPayoutDate || null,\n    triggerType: body.triggerType || 'SINGLE',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "node-auth-idempotency",
+      "name": "Auth & Idempotency Filter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 320]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isDuplicate }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "node-if-duplicate",
+      "name": "Is Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [620, 320]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"status\": \"DEBOUNCED\",\n  \"message\": \"Duplicate trigger ignored to prevent duplicate emails.\",\n  \"authorId\": \"{{ $json.authorId }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "node-respond-duplicate",
+      "name": "Respond Debounced",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [840, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare RAG Grounding & Prompt for AI Model\nconst data = $json;\n\n// Analyze books and edge cases\nconst publishedBooks = data.books.filter(b => b.status === 'Published & Live');\nconst inProductionBooks = data.books.filter(b => b.status !== 'Published & Live');\nconst isUnderThreshold = data.totalPending > 0 && data.totalPending < 1000;\n\n// Knowledge Base Context\nconst policyContext = `\nBOOKLEAF POLICY RULES FOR AI:\n1. 80/20 Royalty Split: 80% net profit goes to author, 20% to BookLeaf.\n2. Payout Schedule: Royalties are calculated quarterly and paid within 45 days of quarter ending.\n3. Minimum Threshold: ₹1,000 minimum payout threshold. If accumulated pending royalties are below ₹1,000, they roll over to the next quarter.\n4. In Production Pipeline: Books in Cover Design or Typesetting are actively being crafted. Reassure the author collaboratively.\n5. Tone: Empathetic, transparent, encouraging, precise with numbers, no corporate fluff.\n`;\n\nconst userPrompt = `Generate a personalized, warm, and highly professional royalty summary email for BookLeaf author ${data.authorName}.\n\nAUTHOR FINANCIAL DATA:\n- Author Name: ${data.authorName}\n- Email: ${data.authorEmail}\n- City: ${data.city}\n- Published Titles (${publishedBooks.length}): ${publishedBooks.map(b => b.title + ' (ISBN: ' + b.isbn + ', Sold: ' + b.totalCopiesSold + ', Pending: ₹' + b.royaltyPending + ')').join('; ')}\n- In-Production Titles (${inProductionBooks.length}): ${inProductionBooks.map(b => b.title + ' [Current Stage: ' + b.status + ']').join('; ')}\n- Total Royalty Earned: ₹${data.totalEarned}\n- Total Royalty Paid: ₹${data.totalPaid}\n- Current Pending Royalty: ₹${data.totalPending}\n- Last Payout Date: ${data.lastPayoutDate || 'None recorded'}\n- Below ₹1,000 Threshold Rollover: ${isUnderThreshold ? 'YES (Current pending is ₹' + data.totalPending + ', under ₹1,000 threshold)' : 'NO'}\n\nREQUIRED EMAIL STRUCTURE:\n1. Warm personalized greeting to ${data.authorName.split(' ')[0]}.\n2. High-level congratulatory note on catalog performance.\n3. Transparent financial ledger (Earned, Paid, Pending).\n4. Explanation of next payout timeline: explain quarterly cycle + 45-day window, or explain ₹1,000 rollover rule if balance is < ₹1,000.\n5. Status update for any titles in production.\n6. Clear support contact next steps and warm signoff from BookLeaf Operations Team.\n\nKeep tone natural, encouraging, and mathematically accurate.`;\n\nreturn [{\n  json: {\n    ...data,\n    policyContext,\n    userPrompt,\n    inProductionCount: inProductionBooks.length,\n    publishedCount: publishedBooks.length\n  }\n}];"
+      },
+      "id": "node-prompt-builder",
+      "name": "Build Grounded Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY || $node[\"Auth & Idempotency Filter\"].json.geminiKey || \"AIzaSyFakeKeyFallback\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": {{ JSON.stringify($json.policyContext + \"\\n\\n\" + $json.userPrompt) }}\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.3,\n    \"maxOutputTokens\": 900\n  }\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "node-call-gemini-ai",
+      "name": "Generate Summary via Gemini AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1060, 420],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI Output with Robust Graceful Fallback\nconst item = $input.item.json;\nconst prev = $node[\"Build Grounded Prompt\"].json;\n\nlet emailContent = '';\nlet isSuccess = false;\nlet errorMessage = '';\n\nif (item.candidates && item.candidates[0]?.content?.parts?.[0]?.text) {\n  emailContent = item.candidates[0].content.parts[0].text;\n  isSuccess = true;\n} else if (item.error) {\n  errorMessage = item.error.message || 'AI API returned an error';\n} else if (item.message) {\n  errorMessage = item.message;\n}\n\n// Fallback Circuit Breaker: If AI failed, synthesize deterministic policy response\nif (!isSuccess) {\n  const firstName = prev.authorName.split(' ')[0];\n  emailContent = `Dear ${firstName},\\n\\n` +\n    `Here is your BookLeaf publishing royalty statement summary:\\n\\n` +\n    `• Total Royalty Earned to Date: ₹${prev.totalEarned.toLocaleString()}\\n` +\n    `• Total Royalty Disbursed: ₹${prev.totalPaid.toLocaleString()}\\n` +\n    `• Current Pending Royalty Balance: ₹${prev.totalPending.toLocaleString()}\\n\\n` +\n    (prev.totalPending >= 1000 \n      ? `Your pending royalty balance exceeds the ₹1,000 threshold and is scheduled for disbursement within the standard 45-day post-quarter payout cycle via bank transfer.\\n\\n`\n      : prev.totalPending > 0\n      ? `Under BookLeaf payout policy, balances under ₹1,000 roll over to the upcoming quarter.\\n\\n`\n      : `Your account is fully settled with zero pending dues. Thank you for publishing with us!\\n\\n`) +\n    `Warm regards,\\nBookLeaf Author Operations Desk`;\n    \n  isSuccess = true; // Fallback succeeded\n  errorMessage = 'Generated via Heuristic Circuit Breaker (AI fallback)';\n}\n\nreturn [{\n  json: {\n    authorId: prev.authorId,\n    authorName: prev.authorName,\n    authorEmail: prev.authorEmail,\n    triggerType: prev.triggerType,\n    status: isSuccess ? 'SUCCESS' : 'FAILED',\n    emailContent,\n    errorMessage,\n    processedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "node-parse-ai-output",
+      "name": "Parse & Fallback Circuit Breaker",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BUBBLE_API_URL || 'https://bookleaf-portal.bubbleapps.io/version-test/api/1.1/wf/notification-callback' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.BUBBLE_API_TOKEN || 'bk_bubble_token_sample' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"author_id\": \"{{ $json.authorId }}\",\n  \"author_name\": \"{{ $json.authorName }}\",\n  \"author_email\": \"{{ $json.authorEmail }}\",\n  \"status\": \"{{ $json.status }}\",\n  \"summary_snippet\": {{ JSON.stringify($json.emailContent.slice(0, 300)) }},\n  \"full_email\": {{ JSON.stringify($json.emailContent) }},\n  \"error_message\": \"{{ $json.errorMessage }}\",\n  \"timestamp\": \"{{ $json.processedAt }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "node-bubble-callback",
+      "name": "Bubble Log Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 420],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": {{ $node[\"Parse & Fallback Circuit Breaker\"].json.status === 'SUCCESS' }},\n  \"status\": \"{{ $node[\"Parse & Fallback Circuit Breaker\"].json.status }}\",\n  \"authorId\": \"{{ $node[\"Parse & Fallback Circuit Breaker\"].json.authorId }}\",\n  \"authorName\": \"{{ $node[\"Parse & Fallback Circuit Breaker\"].json.authorName }}\",\n  \"emailPreview\": {{ JSON.stringify($node[\"Parse & Fallback Circuit Breaker\"].json.emailContent.slice(0, 250) + '...') }},\n  \"processedAt\": \"{{ $node[\"Parse & Fallback Circuit Breaker\"].json.processedAt }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "node-respond-success",
+      "name": "Respond to Bubble Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1720, 420]
+    }
+  ],
+  "connections": {
+    "Bubble Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Auth & Idempotency Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth & Idempotency Filter": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Respond Debounced",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Grounded Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Grounded Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Summary via Gemini AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Summary via Gemini AI": {
+      "main": [
+        [
+          {
+            "node": "Parse & Fallback Circuit Breaker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Fallback Circuit Breaker": {
+      "main": [
+        [
+          {
+            "node": "Bubble Log Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bubble Log Callback": {
+      "main": [
+        [
+          {
+            "node": "Respond to Bubble Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
