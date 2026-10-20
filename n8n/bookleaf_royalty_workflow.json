@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Step 1: Validate Webhook Secret Authentication\nconst headers = $input.item.json.headers || {};\nconst authSecret = headers['x-bookleaf-secret'] || $input.item.json.body?.secret || '';\nconst EXPECTED_SECRET = 'bk_live_sec_9941a';\n\nif (authSecret !== EXPECTED_SECRET) {\n  throw new Error('401 Unauthorized: Invalid or missing x-bookleaf-secret header');\n}\n\n// Step 2: Idempotency Check (In-memory execution lock to prevent double-clicks)\nconst body = $input.item.json.body || {};\nconst authorId = body.authorId || body.author_id;\nconst timestamp = Date.now();\n\nif (!authorId) {\n  throw new Error('400 Bad Request: authorId is required');\n}\n\n// Check global deduplication cache\nglobalThis.__bookleaf_locks = globalThis.__bookleaf_locks || {};\nconst lastExecution = globalThis.__bookleaf_locks[authorId];\n\nif (lastExecution && (timestamp - lastExecution < 60000)) {\n  return [{\n    json: {\n      isDuplicate: true,\n      authorId,\n      message: 'Idempotency: Request throttled. Summary already generated within last 60 seconds.',\n      status: 'IGNORED'\n    }\n  }];\n}\n\nglobalThis.__bookleaf_locks[authorId] = timestamp;\n\nreturn [{\n  json: {\n    isDuplicate: false,\n    authorId,\n    authorName: body.name || body.authorName || 'Author',\n    authorEmail: body.email || body.authorEmail,\n    city: body.city || 'India',\n    books: body.books || [],\n    totalEarned: body.totalRoyaltyEarned || 0,\n    totalPaid: body.royaltyPaid || 0,\n    totalPending: body.royaltyPending || 0,\n    lastPayoutDate: body.lastPayoutDate || null,\n    triggerType: body.triggerType || 'SINGLE',\n    timestamp: new Date().toISOString()\n  }\n}];"
+        "jsCode": "// Validate Webhook Secret Authentication\nconst headers = $input.item.json.headers || {};\nconst authSecret = headers['x-bookleaf-secret'] || $input.item.json.body?.secret || '';\nconst EXPECTED_SECRET = 'bk_live_sec_9941a';\n\nif (authSecret !== EXPECTED_SECRET) {\n  throw new Error('401 Unauthorized: Invalid or missing x-bookleaf-secret header');\n}\n\nconst body = $input.item.json.body || {};\nconst authorId = body.authorId || body.author_id;\nconst timestamp = Date.now();\n\nif (!authorId) {\n  throw new Error('400 Bad Request: authorId is required');\n}\n\n// Idempotency: Deduplicate calls within 60s\nglobalThis.__bookleaf_locks = globalThis.__bookleaf_locks || {};\nconst lastExecution = globalThis.__bookleaf_locks[authorId];\nconst isDuplicate = Boolean(lastExecution && (timestamp - lastExecution < 60000));\n\nif (!isDuplicate) {\n  globalThis.__bookleaf_locks[authorId] = timestamp;\n}\n\nreturn [{\n  json: {\n    isDuplicate,\n    authorId,\n    authorName: body.name || body.authorName || 'Author',\n    authorEmail: body.email || body.authorEmail || 'author@bookleaf.com',\n    city: body.city || 'India',\n    books: body.books || [],\n    totalEarned: body.totalRoyaltyEarned || 0,\n    totalPaid: body.royaltyPaid || 0,\n    totalPending: body.royaltyPending || 0,\n    lastPayoutDate: body.lastPayoutDate || null,\n    triggerType: body.triggerType || 'SINGLE',\n    timestamp: new Date().toISOString()\n  }\n}];"
       },
       "id": "node-auth-idempotency",
       "name": "Auth & Idempotency Filter",
@@ -28,12 +28,24 @@
     {
       "parameters": {
         "conditions": {
-          "boolean": [
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
             {
-              "value1": "={{ $json.isDuplicate }}",
-              "value2": true
+              "id": "c1",
+              "leftValue": "={{ $json.isDuplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
             }
-          ]
+          ],
+          "combinator": "and"
         }
       },
       "id": "node-if-duplicate",
@@ -95,7 +107,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse AI Output with Robust Graceful Fallback\nconst item = $input.item.json;\nconst prev = $node[\"Build Grounded Prompt\"].json;\n\nlet emailContent = '';\nlet isSuccess = false;\nlet errorMessage = '';\n\nif (item.candidates && item.candidates[0]?.content?.parts?.[0]?.text) {\n  emailContent = item.candidates[0].content.parts[0].text;\n  isSuccess = true;\n} else if (item.error) {\n  errorMessage = item.error.message || 'AI API returned an error';\n} else if (item.message) {\n  errorMessage = item.message;\n}\n\n// Fallback Circuit Breaker: If AI failed, synthesize deterministic policy response\nif (!isSuccess) {\n  const firstName = prev.authorName.split(' ')[0];\n  emailContent = `Dear ${firstName},\\n\\n` +\n    `Here is your BookLeaf publishing royalty statement summary:\\n\\n` +\n    `• Total Royalty Earned to Date: ₹${prev.totalEarned.toLocaleString()}\\n` +\n    `• Total Royalty Disbursed: ₹${prev.totalPaid.toLocaleString()}\\n` +\n    `• Current Pending Royalty Balance: ₹${prev.totalPending.toLocaleString()}\\n\\n` +\n    (prev.totalPending >= 1000 \n      ? `Your pending royalty balance exceeds the ₹1,000 threshold and is scheduled for disbursement within the standard 45-day post-quarter payout cycle via bank transfer.\\n\\n`\n      : prev.totalPending > 0\n      ? `Under BookLeaf payout policy, balances under ₹1,000 roll over to the upcoming quarter.\\n\\n`\n      : `Your account is fully settled with zero pending dues. Thank you for publishing with us!\\n\\n`) +\n    `Warm regards,\\nBookLeaf Author Operations Desk`;\n    \n  isSuccess = true; // Fallback succeeded\n  errorMessage = 'Generated via Heuristic Circuit Breaker (AI fallback)';\n}\n\nreturn [{\n  json: {\n    authorId: prev.authorId,\n    authorName: prev.authorName,\n    authorEmail: prev.authorEmail,\n    triggerType: prev.triggerType,\n    status: isSuccess ? 'SUCCESS' : 'FAILED',\n    emailContent,\n    errorMessage,\n    processedAt: new Date().toISOString()\n  }\n}];"
+        "jsCode": "// Parse AI Output with Robust Graceful Fallback\nconst item = $input.item.json;\nconst prev = $node[\"Build Grounded Prompt\"].json;\n\nlet emailContent = '';\nlet isSuccess = false;\nlet errorMessage = '';\n\nif (item.candidates && item.candidates[0]?.content?.parts?.[0]?.text) {\n  emailContent = item.candidates[0].content.parts[0].text;\n  isSuccess = true;\n} else if (item.error) {\n  errorMessage = item.error.message || 'AI API returned an error';\n} else if (item.message) {\n  errorMessage = item.message;\n}\n\n// Fallback Circuit Breaker: If AI failed or key missing, deterministic policy response\nif (!isSuccess) {\n  const firstName = prev.authorName.split(' ')[0];\n  emailContent = `Dear ${firstName},\\n\\n` +\n    `Here is your BookLeaf publishing royalty statement summary:\\n\\n` +\n    `• Total Royalty Earned to Date: ₹${prev.totalEarned.toLocaleString()}\\n` +\n    `• Total Royalty Disbursed: ₹${prev.totalPaid.toLocaleString()}\\n` +\n    `• Current Pending Royalty Balance: ₹${prev.totalPending.toLocaleString()}\\n\\n` +\n    (prev.totalPending >= 1000 \n      ? `Your pending royalty balance exceeds the ₹1,000 threshold and is scheduled for disbursement within the standard 45-day post-quarter payout cycle via bank transfer.\\n\\n`\n      : prev.totalPending > 0\n      ? `Under BookLeaf payout policy, balances under ₹1,000 roll over to the upcoming quarter.\\n\\n`\n      : `Your account is fully settled with zero pending dues. Thank you for publishing with us!\\n\\n`) +\n    `Warm regards,\\nBookLeaf Author Operations Desk`;\n    \n  isSuccess = true;\n  errorMessage = 'Generated via Deterministic Fallback Circuit Breaker';\n}\n\nreturn [{\n  json: {\n    authorId: prev.authorId,\n    authorName: prev.authorName,\n    authorEmail: prev.authorEmail,\n    triggerType: prev.triggerType,\n    status: isSuccess ? 'SUCCESS' : 'FAILED',\n    emailContent,\n    errorMessage,\n    processedAt: new Date().toISOString()\n  }\n}];"
       },
       "id": "node-parse-ai-output",
       "name": "Parse & Fallback Circuit Breaker",
