@@ -81,7 +81,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{ $env.GEMINI_API_KEY || 'AIzaSyAhq0J66UNsbXe8K__r7kIqK6vqdsN3ljM' }}",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={{ $env.GEMINI_API_KEY || 'AIzaSyAhq0J66UNsbXe8K__r7kIqK6vqdsN3ljM' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
